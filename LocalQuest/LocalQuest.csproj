@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <ApplicationIcon>EqIcon(1).ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="EqIcon(1).ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="HttpMultipartParser" Version="8.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="QuerryNetworking">
+      <HintPath>F:\UnityProjects\Five Spooly\QuerryNetworking\QuerryNetworking\bin\Debug\net7.0\QuerryNetworking.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
