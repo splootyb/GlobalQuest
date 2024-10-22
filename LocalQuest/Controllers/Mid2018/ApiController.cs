@@ -527,6 +527,12 @@ namespace LocalQuest.Controllers.Mid2018
             return FileManager.GetJSON<List<PlayerSetting>>("PlayerData/Settings");
         }
 
+        [Get("/api/gameconfigs/v1/all")]
+        public List<GameConfig> GetAllGameConfigs()
+        {
+            return new List<GameConfig>();
+        }
+
         [Get("/api/avatar/v3/items")]
         public List<AvatarItem> GetAvatarItems()
         {
