@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <Reference Include="QuerryNetworking">
-      <HintPath>F:\UnityProjects\Five Spooly\QuerryNetworking\QuerryNetworking\bin\Debug\net7.0\QuerryNetworking.dll</HintPath>
+      <HintPath>F:\UnityProjects\Five Spooly\QuerryNetworking\QuerryNetworking\bin\Debug\net8.0\QuerryNetworking.dll</HintPath>
     </Reference>
   </ItemGroup>
 
