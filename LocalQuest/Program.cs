@@ -459,11 +459,14 @@ namespace LocalQuest
             if(Config.GetBool("AutoDetect"))
             {
                 Api DetectServer = new Api("http://localhost:" + PortOverride + "/");
+                if(Config.GetBool("ReCompat"))
+                {
+                    DetectServer.Listener.Prefixes.Add("http://localhost:2056/");
+                }
                 DetectServer.OnRequest += StartManager.CheckRestart;
+
                 DetectServer.StartServer(new string[] { "LocalQuest.Controllers.BuildDetection" }, "Please start a build now", "BuildDetection");
-
                 StartManager.StartSelected();
-
                 return;
             }
 

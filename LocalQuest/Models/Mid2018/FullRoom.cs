@@ -50,6 +50,7 @@ namespace LocalQuest.Models.Mid2018
         }
         public string? DataBlobName { get; set; }
         public int MaxPlayers { get; set; } = 12;
+        public int FeaturedOrder { get; set; } = 1;
         public bool AccessibilityLocked { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.MinValue;
         public DateTime ModifiedAt { get; set; } = DateTime.MinValue;

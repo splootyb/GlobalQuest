@@ -58,10 +58,8 @@ namespace LocalQuest
             {
                 Api GameServer = new Api("http://localhost:2056/");
                 Console.Title = "LocalQuest - mid 2018";
+                GameServer.Listener.Prefixes.Add("http://localhost:2057/");
                 GameServer.StartServer(new string[] { "LocalQuest.Controllers.Mid2018" }, "LocalQuest - ReCompat 2017! server is online [|X3]", "Mid2018");
-
-                Api GameServer2 = new Api("http://localhost:2057/");
-                GameServer2.StartServer(new string[] { "LocalQuest.Controllers.Mid2018" }, "LocalQuest - ReCompat 2017! server is online [|X3]", "Mid2018");
             }
             else
             {

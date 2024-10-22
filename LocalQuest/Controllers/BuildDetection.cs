@@ -24,7 +24,7 @@ namespace LocalQuest.Controllers.BuildDetection
                 API = "http://localhost:" + PortOverride + "/",
                 Auth = "http://localhost:" + PortOverride + "/",
                 Images = "http://localhost:" + PortOverride + "/img/",
-                Notifications = "http://localhost:" + PortOverride + "/",
+                Notifications = "ws://localhost:" + PortOverride + "/",
                 WWW = "http://localhost:" + PortOverride + "/"
             };
         }

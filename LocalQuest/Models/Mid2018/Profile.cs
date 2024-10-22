@@ -28,6 +28,9 @@ namespace LocalQuest.Models.Mid2018
         public string Bio { get; set; } = LocalQuest.Config.GetString("Bio");
         public int XP { get; set; }
         public int Level { get; set; } = 1;
+        public int Reputation { get; set; }
+        public bool Verified { get; set; } = true;
+        public bool HasEmail { get; set; }
         public RegistrationStatus RegistrationStatus { get; set; } = RegistrationStatus.Registered;
         public bool Developer { get; set; } = true;
         public bool CanReceiveInvites { get; set; } = false;

@@ -31,7 +31,7 @@ namespace LocalQuest.Controllers.Mid2018
                 API = "http://localhost:" + PortOverride + "/",
                 Auth = "http://localhost:" + PortOverride + "/",
                 Images = "http://localhost:" + PortOverride + "/img/",
-                Notifications = "http://localhost:" + PortOverride + "/",
+                Notifications = "ws://localhost:" + PortOverride + "/",
                 WWW = "http://localhost:" + PortOverride + "/"
             };
         }
@@ -408,6 +408,12 @@ namespace LocalQuest.Controllers.Mid2018
             return AvatarManager.GetSavedOutfits();
         }
 
+        [Get("/api/avatar/v1/saved")]
+        public List<SavedOutfitV1> GetSavedOutfitsV1()
+        {
+            return AvatarManager.GetSavedOutfits().Select(A => new SavedOutfitV1(A)).ToList();
+        }
+
         [Post("/api/avatar/v2/saved/set")]
         public SavedOutfit? SetSavedOutfit()
         {
@@ -443,12 +449,47 @@ namespace LocalQuest.Controllers.Mid2018
             };
         }
 
+        [Post("/api/platformlogin/v6")]
+        public LoginV6 LoginV6()
+        {
+            return new LoginV6()
+            {
+                PlayerId = long.Parse(Config.GetString("AccountId"))
+            };
+        }
+
+        [Post("/api/platformlogin/v1/profiles")]
+        public List<Profile> GetProfiles()
+        {
+            return new List<Profile>()
+            {
+                new Profile()
+            };
+        }
+
+        [Get("/api/PlayerReporting/v1/moderationBlockDetails")]
+        public BlockDetails GetBan()
+        {
+            return new BlockDetails();
+        }
+
         [Get("/img/alt/{var}")]
         public byte[] GetImg(string ImageName)
         {
             ImageName = ImageName.Split("?")[0];
             if(!ImageName.EndsWith(".png"))
             {   
+                ImageName = ImageName + ".png";
+            }
+            return FileManager.GetBytes("Images/" + ImageName);
+        }
+
+        [Get("//img/alt/{var}")]
+        public byte[] GetImgDouble(string ImageName)
+        {
+            ImageName = ImageName.Split("?")[0];
+            if (!ImageName.EndsWith(".png"))
+            {
                 ImageName = ImageName + ".png";
             }
             return FileManager.GetBytes("Images/" + ImageName);
@@ -466,6 +507,30 @@ namespace LocalQuest.Controllers.Mid2018
             {
                 Image = NetworkFiles.GetData("Images/" + ImageName).Result;
                 if(Image.Length > 0)
+                {
+                    FileManager.WriteBytes("Images/" + ImageName, Image);
+                }
+                else
+                {
+                    Context.Response.StatusCode = 404;
+                    return new byte[0];
+                }
+            }
+            return Image;
+        }
+
+        [Get("//img/{var}")]
+        public byte[] GetImg2Double(string ImageName)
+        {
+            if (!ImageName.EndsWith(".png"))
+            {
+                ImageName = ImageName + ".png";
+            }
+            byte[] Image = FileManager.GetBytes("Images/" + ImageName);
+            if (Image.Length == 0)
+            {
+                Image = NetworkFiles.GetData("Images/" + ImageName).Result;
+                if (Image.Length > 0)
                 {
                     FileManager.WriteBytes("Images/" + ImageName, Image);
                 }
@@ -613,6 +678,18 @@ namespace LocalQuest.Controllers.Mid2018
             return Results;
         }
 
+        [Get("/api/rooms/v1/myrooms")]
+        public List<FullRoom>? GetMyRoomsV1()
+        {
+            List<RoomBase> Mine = RoomManager.AllRooms.Where(A => A.CreatorPlayerId == long.Parse(Config.GetString("AccountId"))).ToList();
+            List<FullRoom> Results = new List<FullRoom>();
+            foreach (var Room in Mine)
+            {
+                Results.Add(new FullRoom(Room));
+            }
+            return Results;
+        }
+
         [Get("/api/rooms/v2/mybookmarkedrooms")]
         public List<FullRoom>? GetMyBookmarks()
         {
@@ -627,6 +704,31 @@ namespace LocalQuest.Controllers.Mid2018
             {
                 RoomBase? Room = RoomManager.AllRooms.FirstOrDefault(A => A.RoomId == Bookmark);
                 if(Room != null)
+                {
+                    Results.Add(new FullRoom(Room));
+                }
+                else
+                {
+                    Log.Warn("bookmarked invalid room");
+                }
+            }
+            return Results;
+        }
+
+        [Get("/api/rooms/v1/mybookmarkedrooms")]
+        public List<FullRoom>? GetMyBookmarksV1()
+        {
+            if (RoomManager.AllRooms == null)
+            {
+                Log.Warn("invalid rooms list");
+                return new List<FullRoom>();
+            }
+            List<long> Bookmarks = RoomManager.GetBookmarks();
+            List<FullRoom> Results = new List<FullRoom>();
+            foreach (var Bookmark in Bookmarks)
+            {
+                RoomBase? Room = RoomManager.AllRooms.FirstOrDefault(A => A.RoomId == Bookmark);
+                if (Room != null)
                 {
                     Results.Add(new FullRoom(Room));
                 }
@@ -766,6 +868,25 @@ namespace LocalQuest.Controllers.Mid2018
 
         [Post("//api/images/v3/uploadsaved")]
         public async Task<ImageResult> UploadImage()
+        {
+            byte[] Data = GetPostBytes();
+            var Parse = MultipartFormDataParser.Parse(new MemoryStream(Data), boundary: Multipart.GetBoundary(Data, Context));
+
+            FilePart F = Parse.Files[0];
+            Log.Debug("image name: " + F.Name);
+            MemoryStream ImageData = new MemoryStream();
+            F.Data.CopyTo(ImageData);
+            byte[] AAAA = ImageData.ToArray();
+            string ImageName = "Image" + new Random().Next();
+            FileManager.WriteBytes("Images/" + ImageName + ".png", AAAA);
+            return new ImageResult()
+            {
+                ImageName = ImageName,
+            };
+        }
+
+        [Post("//api/images/v4/uploadtransient")]
+        public async Task<ImageResult> UploadImageTransient()
         {
             byte[] Data = GetPostBytes();
             var Parse = MultipartFormDataParser.Parse(new MemoryStream(Data), boundary: Multipart.GetBoundary(Data, Context));
@@ -1073,6 +1194,22 @@ namespace LocalQuest.Controllers.Mid2018
             return Results;
         }
 
+        [Post("/api/rooms/v2/browse")]
+        public List<FullRoom> BrowseRoomsV2()
+        {
+            List<FullRoom> Results = new List<FullRoom>();
+            if (RoomManager.AllRooms == null)
+            {
+                Log.Warn("no rooms found!");
+                return Results;
+            }
+            foreach (var Room in RoomManager.AllRooms.Where(A => A.Accessibility == Accessibility.Public))
+            {
+                Results.Add(new FullRoom(Room));
+            }
+            return Results;
+        }
+
         [Post("/api/settings/v2/set")]
         public List<PlayerSetting>? SetSetting()
         {
@@ -1266,6 +1403,26 @@ namespace LocalQuest.Controllers.Mid2018
             {
                 IsPure = WordFilter.IsPure(Request.Value)
             };
+        }
+
+        [Get("/api/players/v1/{var}")]
+        public Profile? GetProfileOld(string Id)
+        {
+            if(Id == Config.GetString("AccountId"))
+            {
+                return new Profile();
+            }
+            else
+            {
+                Context.Response.StatusCode = 404;
+                return null;
+            }
+        }
+
+        [Get("/api/events/v3/list")]
+        public List<PlayerEvent> ListEvents()
+        {
+            return new List<PlayerEvent>();
         }
 
         [Post("/api/players/v1/list")]
