@@ -13,6 +13,7 @@ namespace LocalQuest
     internal static class Setup
     {
         public static float Version = .1f;
+        public static bool Beta = true;
         public static void Defaults()
         {
             Console.Clear();

@@ -10,10 +10,26 @@ namespace LocalQuest
     internal static class UiTools
     {
         static string Title = "██╗      ██████╗  ██████╗ █████╗ ██╗      ██████╗ ██╗   ██╗███████╗███████╗████████╗\r\n██║     ██╔═══██╗██╔════╝██╔══██╗██║     ██╔═══██╗██║   ██║██╔════╝██╔════╝╚══██╔══╝\r\n██║     ██║   ██║██║     ███████║██║     ██║   ██║██║   ██║█████╗  ███████╗   ██║   \r\n██║     ██║   ██║██║     ██╔══██║██║     ██║▄▄ ██║██║   ██║██╔══╝  ╚════██║   ██║   \r\n███████╗╚██████╔╝╚██████╗██║  ██║███████╗╚██████╔╝╚██████╔╝███████╗███████║   ██║   \r\n╚══════╝ ╚═════╝  ╚═════╝╚═╝  ╚═╝╚══════╝ ╚══▀▀═╝  ╚═════╝ ╚══════╝╚══════╝   ╚═╝";
+        static string SillyTitle = "   ██████╗      ██████╗ ██╗   ██╗███████╗███████╗████████╗\r\n██╗╚════██╗    ██╔═══██╗██║   ██║██╔════╝██╔════╝╚══██╔══╝\r\n╚═╝ █████╔╝    ██║   ██║██║   ██║█████╗  ███████╗   ██║   \r\n██╗ ╚═══██╗    ██║▄▄ ██║██║   ██║██╔══╝  ╚════██║   ██║   \r\n╚═╝██████╔╝    ╚██████╔╝╚██████╔╝███████╗███████║   ██║   \r\n   ╚═════╝      ╚══▀▀═╝  ╚═════╝ ╚══════╝╚══════╝   ╚═╝";
         public static void WriteTitle()
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine(Title);
+            if(!Config.GetBool("FirstTitle"))
+            {
+                Config.SetBool("FirstTitle", true);
+                Console.WriteLine(Title);
+                Console.ForegroundColor = ConsoleColor.White;
+                return;
+            }
+            Random R = new Random();
+            if(R.Next(0, 250) == 1)
+            {
+                Console.WriteLine(SillyTitle);
+            }
+            else
+            {
+                Console.WriteLine(Title);
+            }
             Console.ForegroundColor = ConsoleColor.White;
         }
 

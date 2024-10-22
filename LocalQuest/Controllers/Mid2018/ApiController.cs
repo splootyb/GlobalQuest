@@ -64,7 +64,6 @@ namespace LocalQuest.Controllers.Mid2018
         public async Task<MatchmakeResponse> JoinRandom()
         {
             string PostData = GetPostString();
-            Console.WriteLine(PostData);
             JoinSessionRequest? Request = JsonSerializer.Deserialize<JoinSessionRequest>(PostData);
             if(Request == null)
             {
@@ -138,7 +137,6 @@ namespace LocalQuest.Controllers.Mid2018
         public async Task<MatchmakeResponse> CreateRoom()
         {
             string PostData = GetPostString();
-            Console.WriteLine(PostData);
             CreateSessionRequest? Request = JsonSerializer.Deserialize<CreateSessionRequest>(PostData);
             if (Request == null)
             {
@@ -407,7 +405,20 @@ namespace LocalQuest.Controllers.Mid2018
         [Get("/api/avatar/v2/saved")]
         public List<SavedOutfit> GetSavedOutfits()
         {
-            return new List<SavedOutfit>();
+            return AvatarManager.GetSavedOutfits();
+        }
+
+        [Post("/api/avatar/v2/saved/set")]
+        public SavedOutfit? SetSavedOutfit()
+        {
+            string PostString = GetPostString();
+            SavedOutfitReq? Request = JsonSerializer.Deserialize<SavedOutfitReq>(PostString);
+            if (Request == null)
+            {
+                Log.Warn("Invalid saved outfit");
+                return null;
+            }
+            return AvatarManager.SaveOutfit(Request);
         }
 
         [Get("/api/avatar/v3/saved")]

@@ -50,19 +50,39 @@ namespace LocalQuest
             UiTools.WriteTitle();
             Console.WriteLine("LocalQuest - EpicQuest but localhost?! YEAH");
 
+            string BetaString = "";
+            if(Setup.Beta)
+            {
+                BetaString = " [BETA]";
+            }
+
+            Console.WriteLine("Server Version: " + Setup.Version + BetaString);
+
             UiTools.ShowBanner("Welcome, " + Config.GetString("DisplayName"));
             Console.ForegroundColor = ConsoleColor.White;
 
-            string Selection = UiTools.WriteControls(new List<string>()
+            List<string> Options = new List<string>()
             {
                 "Start server",
                 "Modify profile",
                 "Settings",
-                "What's new",
-                "Join the discord"
-            });
+            };
 
-            switch(Selection)
+            Random R = new Random();
+            if(R.Next(0,500) == 1)
+            {
+                Options.Add("What's mew :3");
+            }
+            else
+            {
+                Options.Add("What's new");
+            }
+
+            Options.Add("Join the discord");
+
+            string Selection = UiTools.WriteControls(Options);
+
+            switch (Selection)
             {
                 case "Start server":
                     BuildChoice();
@@ -77,6 +97,10 @@ namespace LocalQuest
                     return;
 
                 case "What's new":
+                    WhatNew();
+                    return;
+
+                case "What's mew :3":
                     WhatNew();
                     return;
 
@@ -438,9 +462,7 @@ namespace LocalQuest
                 DetectServer.OnRequest += StartManager.CheckRestart;
                 DetectServer.StartServer(new string[] { "LocalQuest.Controllers.BuildDetection" }, "Please start a build now", "BuildDetection");
 
-                Api GameServer = new Api("http://localhost:" + PortOverride + "/");
-                Console.Title = "LocalQuest - mid 2018";
-                GameServer.StartServer(new string[] { "LocalQuest.Controllers.Mid2018" }, "LocalQuest - mid 2018! server is online [|X3]", "Mid2018");
+                StartManager.StartSelected();
 
                 return;
             }
@@ -449,6 +471,7 @@ namespace LocalQuest
             {
                 "Go back",
                 "mid 2018",
+                "2017 (test)",
             });
 
 
@@ -464,9 +487,23 @@ namespace LocalQuest
                     Console.WriteLine("LocalQuest - mid 2018");
                     try
                     {
-                        Api GameServer = new Api("http://localhost:" + PortOverride + "/");
-                        Console.Title = "LocalQuest - mid 2018";
-                        GameServer.StartServer(new string[] { "LocalQuest.Controllers.Mid2018" }, "LocalQuest - mid 2018! server is online [|X3]", "Mid2018");
+                        StartManager.GameVersion = "20180716";
+                        StartManager.StartSelected();
+                    }
+                    catch
+                    {
+                        StartFailure("Failed to start the server. [|X3]");
+                    }
+                    break;
+                case "2017 (test)":
+                    Console.Clear();
+                    UiTools.WriteTitle();
+                    Console.Title = "LocalQuest - 2017??";
+                    Console.WriteLine("LocalQuest - 2017??");
+                    try
+                    {
+                        StartManager.GameVersion = "20170716";
+                        StartManager.StartSelected();
                     }
                     catch
                     {

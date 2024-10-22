@@ -12,4 +12,11 @@ namespace LocalQuest.Models.Mid2018
         public string? PreviewImageName { get; set; }
         public string? OutfitSelections { get; set; }
     }
+
+    public class SavedOutfitReq
+    {
+        public string Slot { get; set; } = "0";
+        public string? PreviewImageName { get; set; }
+        public string? OutfitSelections { get; set; }
+    }
 }
