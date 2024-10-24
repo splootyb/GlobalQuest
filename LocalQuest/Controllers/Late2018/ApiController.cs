@@ -50,6 +50,36 @@ namespace LocalQuest.Controllers.Late2018
             };
         }
 
+        [Get("/2")]
+        public Nameserver GetNameserver2()
+        {
+            string? PortOverride = Config.GetString("ServerPort");
+            if (string.IsNullOrEmpty(PortOverride))
+            {
+                PortOverride = "16512";
+            }
+
+            return new Nameserver()
+            {
+                API = "http://localhost:" + PortOverride + "/",
+                Auth = "http://localhost:" + PortOverride + "/",
+                Images = "http://localhost:" + PortOverride + "/img/",
+                Notifications = "http://localhost:" + PortOverride + "/",
+                Commerce = "http://localhost:" + PortOverride + "/",
+                Accounts = "http://localhost:" + PortOverride + "/",
+                CDN = "http://localhost:" + PortOverride + "/",
+                Storage = "http://localhost:" + PortOverride + "/",
+                Matchmaking = "http://localhost:" + PortOverride + "/",
+                Leaderboard = "http://localhost:" + PortOverride + "/",
+                Link = "http://localhost:" + PortOverride + "/",
+                RoomComments = "http://localhost:" + PortOverride + "/",
+                Chat = "http://localhost:" + PortOverride + "/",
+                Clubs = "http://localhost:" + PortOverride + "/",
+                Rooms = "http://localhost:" + PortOverride + "/roomserver",
+                WWW = "http://localhost:" + PortOverride + "/"
+            };
+        }
+
         [Get("/api/config/v2")]
         public Models.Mid2018.Config GetConfig()
         {
