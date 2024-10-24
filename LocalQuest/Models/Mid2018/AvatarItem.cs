@@ -10,5 +10,9 @@ namespace LocalQuest.Models.Mid2018
     {
         public string? AvatarItemDesc { get; set; }
         public int UnlockedLevel { get; set; }
+        // mask
+        public int PlatformMask { get; set; } = -1;
+        public string FriendlyName { get; set; } = "AvatarItem";
+        public GiftRarity Rarity { get; set; }
     }
 }
