@@ -21,7 +21,8 @@ namespace LocalQuest
             {
                 return;
             }
-            GameVersion = URL.Split("?")[1].Replace("?v=", "").Replace("_EA", "");
+            GameVersion = URL.Split("?")[1].Replace("v=", "").Replace("_EA", "");
+            Log.Info("Game version: " + GameVersion);
             Config.SetString("LastGameVersion", GameVersion);
             ServerLocation.OnRequest -= Request;
             ServerLocation.OnRequest -= CheckRestart;
@@ -60,6 +61,28 @@ namespace LocalQuest
                 Console.Title = "LocalQuest - mid 2018";
                 GameServer.Listener.Prefixes.Add("http://localhost:2057/");
                 GameServer.StartServer(new string[] { "LocalQuest.Controllers.Mid2018" }, "LocalQuest - ReCompat 2017! server is online [|X3]", "Mid2018");
+                return;
+            }
+
+            int VerInt = int.Parse(GameVersion);
+
+            if(VerInt >= 20200403)
+            {
+                Api GameServer = new Api("http://localhost:" + PortOverride + "/");
+                Console.Title = "LocalQuest - late 2019+";
+                GameServer.StartServer(new string[] { "LocalQuest.Controllers.Late2018", "LocalQuest.Controllers.ServiceControllers" }, "LocalQuest - late 2019+! server is online [|X3]", "Late2019+");
+            }
+            if(VerInt >= 20181108)
+            {
+                Api GameServer = new Api("http://localhost:" + PortOverride + "/");
+                Console.Title = "LocalQuest - late 2018";
+                GameServer.StartServer(new string[] { "LocalQuest.Controllers.Late2018" }, "LocalQuest - late 2018! server is online [|X3]", "Late2018");
+            }
+            else if(VerInt >= 20180827)
+            {
+                Api GameServer = new Api("http://localhost:" + PortOverride + "/");
+                Console.Title = "LocalQuest - mid late 2018";
+                GameServer.StartServer(new string[] { "LocalQuest.Controllers.MidLate2018" }, "LocalQuest - mid late 2018! server is online [|X3]", "MidLate2018");
             }
             else
             {

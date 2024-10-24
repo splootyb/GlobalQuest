@@ -12,7 +12,7 @@ namespace LocalQuest
 {
     internal static class Setup
     {
-        public static float Version = .1f;
+        public static float Version = .2f;
         public static bool Beta = true;
         public static void Defaults()
         {
@@ -23,11 +23,37 @@ namespace LocalQuest
             CreateDefault("Username", NewUsername + new Random().Next(0, 9999));
             CreateDefault("DisplayName", NewUsername);
             CreateDefault("AccountId", new Random().Next().ToString());
-            CreateDefault("PFP", "DefaultPFP");
+
             if(FileManager.GetBytes("Images/DefaultPFP.png").Length == 0)
             {
                 FileManager.WriteBytes("Images/DefaultPFP.png", Convert.FromBase64String(AccountManager.DefaultPFP));
             }
+
+            if (FileManager.GetBytes("Images/Spooky.png").Length == 0)
+            {
+                FileManager.WriteBytes("Images/Spooky.png", Convert.FromBase64String(AccountManager.SpookyQuesterImg));
+            }
+
+            if (FileManager.GetBytes("Images/Mail.png").Length == 0)
+            {
+                FileManager.WriteBytes("Images/Mail.png", Convert.FromBase64String(AccountManager.MailImg));
+            }
+
+            if (FileManager.GetBytes("Images/A.png").Length == 0)
+            {
+                FileManager.WriteBytes("Images/A.png", Convert.FromBase64String(AccountManager.AImg));
+            }
+
+            List<string> Defaults = new List<string>()
+            {
+                "DefaultPFP",
+                "Spooky",
+                "Mail",
+                "A"
+            };
+
+            CreateDefault("PFP", Defaults[new Random().Next(0,Defaults.Count)]);
+
             Console.Clear();
             if (FileManager.GetJSON<PlayerAvatar>("Avatar/LocalAvatar") == null)
             {

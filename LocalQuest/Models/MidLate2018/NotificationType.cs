@@ -4,14 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LocalQuest.Models.Mid2018
+namespace LocalQuest.Models.MidLate2018
 {
-    public class Notification
-    {
-        public object Id { get; set; }
-        public object? Msg { get; set; }
-    }
-
     public enum NotificationType
     {
         RelationshipChanged = 1,
@@ -22,11 +16,12 @@ namespace LocalQuest.Models.Mid2018
         SubscriptionUpdateProfile = 11,
         SubscriptionUpdatePresence,
         SubscriptionUpdateGameSession,
-        SubscriptionUpdateRoom,
+        SubscriptionUpdateRoom = 15,
         ModerationQuitGame = 20,
         ModerationUpdateRequired,
         ModerationKick,
         ModerationKickAttemptFailed,
+        ServerMaintenance = 25,
         GiftPackageReceived = 30,
         ProfileJuniorStatusUpdate = 40,
         RelationshipsInvalid = 50,

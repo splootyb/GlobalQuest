@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LocalQuest.Models.Early2019;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -151,5 +152,17 @@ namespace LocalQuest.Models.Mid2018
         };
         public List<ConfigTable> ConfigTable { get; set; } = new List<ConfigTable>();
         public PhotonConfig PhotonConfig { get; set; } = new PhotonConfig();
+        public AutoMicMutingConfig AutoMicMutingConfig { get; set; } = new AutoMicMutingConfig()
+        {
+            MicSpamVolumeThreshold = 1.125f,
+            MicVolumeSampleInterval = 0.25f,
+            MicVolumeSampleRollingWindowLength = 7,
+            MicSpamSamplePercentageForWarning = 0.8f,
+            MicSpamSamplePercentageForWarningToEnd = 0.2f,
+            MicSpamSamplePercentageForForceMute = 0.8f,
+            MicSpamSamplePercentageForForceMuteToEnd = 0.2f,
+            MicSpamWarningStateVolumeMultiplier = 0.25f
+        };
+        public ServerMaintenance ServerMaintenance { get; set; } = new ServerMaintenance();
     }
 }

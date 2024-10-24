@@ -179,7 +179,7 @@ namespace LocalQuest
                     Settings();
                     break;
 
-                case string S when S == ("Allow OpenRec/RebornRec style ui nav [currently: " + Config.GetBool("ReControl") + "]"):
+                case string S when S == ("Use OpenRec/RebornRec style ui nav [currently: " + Config.GetBool("ReControl") + "]"):
                     Config.SetBool("ReControl", !Config.GetBool("ReControl"));
                     Settings();
                     break;
@@ -473,6 +473,9 @@ namespace LocalQuest
             string Selection = UiTools.WriteControls(new List<string>()
             {
                 "Go back",
+                "late 2019+",
+                "late 2018-mid 2019",
+                "mid-late 2018",
                 "mid 2018",
                 "2017 (test)",
             });
@@ -483,6 +486,36 @@ namespace LocalQuest
                 case "Go back":
                     Main(new string[0]);
                     return;
+                case "late 2019+":
+                    Console.Clear();
+                    UiTools.WriteTitle();
+                    Console.Title = "LocalQuest - late 2019+";
+                    Console.WriteLine("LocalQuest - late 2019+");
+                    try
+                    {
+                        StartManager.GameVersion = "20200403";
+                        StartManager.StartSelected();
+                    }
+                    catch
+                    {
+                        StartFailure("Failed to start the server. [|X3]");
+                    }
+                    break;
+                case "late 2018":
+                    Console.Clear();
+                    UiTools.WriteTitle();
+                    Console.Title = "LocalQuest - late 2018";
+                    Console.WriteLine("LocalQuest - late 2018");
+                    try
+                    {
+                        StartManager.GameVersion = "20181108";
+                        StartManager.StartSelected();
+                    }
+                    catch
+                    {
+                        StartFailure("Failed to start the server. [|X3]");
+                    }
+                    break;
                 case "mid 2018":
                     Console.Clear();
                     UiTools.WriteTitle();
@@ -506,6 +539,21 @@ namespace LocalQuest
                     try
                     {
                         StartManager.GameVersion = "20170716";
+                        StartManager.StartSelected();
+                    }
+                    catch
+                    {
+                        StartFailure("Failed to start the server. [|X3]");
+                    }
+                    break;
+                case "mid-late 2018":
+                    Console.Clear();
+                    UiTools.WriteTitle();
+                    Console.Title = "LocalQuest - 2018??";
+                    Console.WriteLine("LocalQuest - 2018??");
+                    try
+                    {
+                        StartManager.GameVersion = "20180827";
                         StartManager.StartSelected();
                     }
                     catch

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Threading.Tasks;
@@ -75,6 +76,7 @@ namespace LocalQuest
                 switch(Key.Key)
                 {
                     case ConsoleKey.UpArrow:
+                        MoveSound();
                         if(Selected > 0)
                         {
                             Selected -= 1;
@@ -85,6 +87,7 @@ namespace LocalQuest
                         }
                         break;
                     case ConsoleKey.DownArrow:
+                        MoveSound();
                         if(Selected < Controls.Count - 1)
                         {
                             Selected += 1;
@@ -95,6 +98,7 @@ namespace LocalQuest
                         }
                         break;
                     case ConsoleKey.Enter:
+                        InteractSound();
                         return Controls[Selected];
 
                     default:
@@ -129,12 +133,12 @@ namespace LocalQuest
             Message = " " + Message;
             Mid += Message;
 
-            for (int i = 0; i < Width - Message.Length; i++)
+            for (int i = 0; i < Width - Message.Length - 1; i++)
             {
                 Mid += " ";
             }
 
-            for (int i = 0; i < Width; i++)
+            for (int i = 0; i < Width - 1; i++)
             {
                 Top += "━";
                 Low += "━";
@@ -156,7 +160,7 @@ namespace LocalQuest
             string Mid = "";
             string Low = "┗";
 
-            for (int i = 0; i < Width; i++)
+            for (int i = 0; i < Width - 1; i++)
             {
                 Top += "━";
                 Low += "━";
@@ -165,7 +169,7 @@ namespace LocalQuest
             Low += "┛\n";
 
             int li = 0;
-            for(int i = 0; i < Message.Length;)
+            for(int i = 0; i < Message.Length - 1;)
             {
                 if (li == 0)
                 {
@@ -176,7 +180,7 @@ namespace LocalQuest
                 {
                     li++;
                 }
-                else if (li == Console.WindowWidth - 2)
+                else if (li == Console.WindowWidth - 3)
                 {
                     Mid += " ┃\n";
                     li = 0;
@@ -190,7 +194,7 @@ namespace LocalQuest
             }
             if(li < Console.WindowWidth - 1)
             {
-                for(int i = 0; i < Console.WindowWidth - li - 1; i++)
+                for(int i = 0; i < Console.WindowWidth - li - 2; i++)
                 {
                     Mid += " ";
                 }
@@ -198,6 +202,23 @@ namespace LocalQuest
             Mid += "┃\n";
             Console.Write(Top + Mid + Low);
             Console.ForegroundColor = ConsoleColor.White;
+        }
+
+        public static void MoveSound()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Console.Beep(200, 50);
+            }
+        }
+
+        public static void InteractSound()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Console.Beep(500, 50);
+                Console.Beep(900, 75);
+            }
         }
     }
 

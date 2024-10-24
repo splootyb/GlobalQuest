@@ -14,6 +14,9 @@ namespace LocalQuest.Models.Modern
         public string? profileImage { get; set; }
         public string? bannerImage { get; set; }
         public bool isJunior { get; set; }
+        public DateTime createdAt { get; set; }
+        // add platform mask 
+        public int platforms { get; set; }
         // more
     }
 }

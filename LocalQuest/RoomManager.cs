@@ -1,4 +1,5 @@
 ﻿using LocalQuest.Models.Mid2018;
+using LocalQuest.Models.MidLate2018;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,6 +25,8 @@ namespace LocalQuest
             {
                 AllRooms = new List<RoomBase>();
             }
+
+            AddRROs();
 
             Console.WriteLine("Reading local rooms...");
             List<RoomBase>? LocalRooms = FileManager.GetJSON<List<RoomBase>>("LocalRooms");
@@ -54,6 +57,116 @@ namespace LocalQuest
             }
 
             Console.Clear();
+        }
+
+        static void AddRROs()
+        {
+            if(AllRooms == null)
+            {
+                Log.Warn("AllRooms doesn't exist?!");
+                return;
+            }
+            AllRooms.Add(new RoomBase()
+            {
+                Sandbox = false,
+                AllowScreenMode = true,
+                Accessibility = Accessibility.Unlisted,
+                CreationTime = DateTime.MinValue.AddYears(2017).AddMonths(7).AddDays(26),
+                MinSupportedDate = DateTime.MinValue.AddYears(2017).AddMonths(7).AddDays(26),
+                CreatorPlayerId = 1,
+                Description = "Your private room",
+                ImageName = "DefaultPFP",
+                Name = "DormRoom",
+                RoomId = 100,
+                Scenes = new List<SceneBase>()
+                {
+                    new SceneBase()
+                    {
+                        SceneId = 1,
+                        UnitySceneId = "76d98498-60a1-430c-ab76-b54a29b7a163",
+                        DataBlob = "",
+                        Name = "Home"
+                    }
+                },
+            });
+
+            AllRooms.Add(new RoomBase()
+            {
+                Sandbox = false,
+                AllowScreenMode = true,
+                Accessibility = Accessibility.Public,
+                CreationTime = DateTime.MinValue.AddYears(2017).AddMonths(7).AddDays(26),
+                MinSupportedDate = DateTime.MinValue.AddYears(2017).AddMonths(7).AddDays(26),
+                CreatorPlayerId = 1,
+                Description = "Wrecked :p",
+                ImageName = "DefaultPFP",
+                Name = "RecCenter",
+                RRO = true,
+                RoomId = 101,
+                Scenes = new List<SceneBase>()
+                {
+                    new SceneBase()
+                    {
+                        SceneId = 1,
+                        UnitySceneId = "cbad71af-0831-44d8-b8ef-69edafa841f6",
+                        DataBlob = "",
+                        Name = "Home"
+                    }
+                },
+            });
+
+            AllRooms.Add(new RoomBase()
+            {
+                Sandbox = true,
+                AllowScreenMode = true,
+                Accessibility = Accessibility.Unlisted,
+                CreationTime = DateTime.MinValue.AddYears(2017).AddMonths(7).AddDays(26),
+                MinSupportedDate = DateTime.MinValue.AddYears(2017).AddMonths(7).AddDays(26),
+                CreatorPlayerId = 1,
+                Description = "Make something",
+                ImageName = "DefaultPFP",
+                Name = "MakerRoom",
+                RRO = true,
+                RoomId = 102,
+                Tags = "#base," + TagType.AGOnly,
+                Scenes = new List<SceneBase>()
+                {
+                    new SceneBase()
+                    {
+                        SceneId = 1,
+                        UnitySceneId = "a75f7547-79eb-47c6-8986-6767abcb4f92",
+                        DataBlob = "",
+                        Name = "Home"
+                    }
+                },
+            });
+
+            AllRooms.Add(new RoomBase()
+            {
+                Sandbox = false,
+                AllowScreenMode = true,
+                Accessibility = Accessibility.Public,
+                CreationTime = DateTime.MinValue.AddYears(2017).AddMonths(7).AddDays(26),
+                MinSupportedDate = DateTime.MinValue.AddYears(2017).AddMonths(7).AddDays(26),
+                CreatorPlayerId = 1,
+                Description = "Look at the moon",
+                ImageName = "DefaultPFP",
+                Name = "Crescendo",
+                RRO = true,
+                RoomId = 103,
+                Tags = "#base," + TagType.AGOnly,
+                Scenes = new List<SceneBase>()
+                {
+                    new SceneBase()
+                    {
+                        SceneId = 1,
+                        UnitySceneId = "49cb8993-a956-43e2-86f4-1318f279b22a",
+                        DataBlob = "",
+                        Name = "Home"
+                    }
+                },
+            });
+
         }
 
         public static void AddLocalRoom(RoomBase New)
@@ -184,19 +297,23 @@ namespace LocalQuest
             }
         }
         public DateTime? CreationTime { get; set; } = DateTime.MinValue;
+        public DateTime? MinSupportedDate { get; set; } = DateTime.MinValue;
         public long RoomId { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }
         public string? ImageName { get; set; }
         public bool Sandbox { get; set; }
+        public bool RRO { get; set; } = false;
         public int CreatorPlayerId { get; set; }
         public bool? AllowScreenMode { get; set; }
+        public string Tags { get; set; } = "";
         public Accessibility? Accessibility { get; set; } = Models.Mid2018.Accessibility.Public;
         public List<SceneBase> Scenes { get; set; } = new List<SceneBase>();
     }
 
     public class SceneBase
     {
+        public long SceneId { get; set; }
         public required string UnitySceneId { get; set; }
         public string? Name { get; set; }
         public string? DataBlob { get; set; }

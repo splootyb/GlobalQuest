@@ -1,5 +1,6 @@
 ﻿using HttpMultipartParser;
 using LocalQuest.Models.Mid2018;
+using LocalQuest.Models.MidLate2018;
 using QuerryNetworking.Core;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace LocalQuest.Controllers.Mid2018
+namespace LocalQuest.Controllers.MidLate2018
 {
     internal class ApiController : ClientRequest
     {
@@ -58,143 +59,6 @@ namespace LocalQuest.Controllers.Mid2018
         public PlayerEventData GetAllEvents()
         {
             return new PlayerEventData();
-        }
-
-        [Post("/api/gamesessions/v2/joinrandom")]
-        public async Task<MatchmakeResponse> JoinRandom()
-        {
-            string PostData = GetPostString();
-            JoinSessionRequest? Request = JsonSerializer.Deserialize<JoinSessionRequest>(PostData);
-            if(Request == null)
-            {
-                return new MatchmakeResponse()
-                { 
-                    Result = MatchmakeResult.NoSuchGame
-                };
-            }
-
-            Random R = new Random();
-            string Activity = Request.ActivityLevelIds[R.Next(0, Request.ActivityLevelIds.Count())];
-
-            GameSession NewSession = new GameSession()
-            {
-                ActivityLevelId = Activity,
-                RoomId = Activity,
-                SupportsScreens = true,
-                SupportsVR = true,
-                GameSessionId = 1,
-            };
-
-            if(Notify.CurrentPresence != null && Notify.CurrentPresence.GameSession != null)
-            {
-                if(Notify.CurrentPresence.GameSession.ActivityLevelId == Activity)
-                {
-                    NewSession.RoomId += "1";
-                }
-            }
-
-            bool Private = Config.GetBool("PrivateDorm");
-            if (Private && NewSession.ActivityLevelId == "76d98498-60a1-430c-ab76-b54a29b7a163")
-            {
-                NewSession.Private = true;
-                if (!string.IsNullOrEmpty(Config.GetString("PrivateCode")))
-                {
-                    NewSession.RoomId += Config.GetString("PrivateCode");
-                }
-                else
-                {
-                    NewSession.RoomId += Guid.NewGuid().ToString();
-                }
-            }
-
-            await Notify.SendNotification(new Notification()
-            {
-                Id = NotificationType.SubscriptionUpdatePresence,
-                Msg = new PlayerPresence()
-                {
-                    GameSession = NewSession,
-                    InScreenMode = true,
-                    IsOnline = true,
-                    PlayerId = long.Parse(LocalQuest.Config.GetString("AccountId"))
-                }
-            });
-            Notify.CurrentPresence = new PlayerPresence()
-            {
-                GameSession = NewSession,
-                InScreenMode = true,
-                IsOnline = true,
-                PlayerId = long.Parse(LocalQuest.Config.GetString("AccountId"))
-            };
-            return new MatchmakeResponse()
-            {
-                Result = MatchmakeResult.Success,
-                GameSession = NewSession
-            };
-
-        }
-
-        [Post("/api/gamesessions/v2/create")]
-        public async Task<MatchmakeResponse> CreateRoom()
-        {
-            string PostData = GetPostString();
-            CreateSessionRequest? Request = JsonSerializer.Deserialize<CreateSessionRequest>(PostData);
-            if (Request == null)
-            {
-                return new MatchmakeResponse()
-                {
-                    Result = MatchmakeResult.NoSuchGame
-                };
-            }
-
-            GameSession New = new GameSession()
-            {
-                ActivityLevelId = Request.ActivityLevelId,
-                RoomId = Request.ActivityLevelId,
-                SupportsScreens = true,
-                SupportsVR = true,
-                GameSessionId = 1,
-                Private = true,
-                Sandbox = Request.IsSandbox,
-                CreatorPlayerId = long.Parse(LocalQuest.Config.GetString("AccountId"))
-            };
-
-            if (Notify.CurrentPresence != null && Notify.CurrentPresence.GameSession != null)
-            {
-                if (Notify.CurrentPresence.GameSession.ActivityLevelId == New.ActivityLevelId)
-                {
-                    New.RoomId += "1";
-                }
-            }
-
-            if(!string.IsNullOrEmpty(Config.GetString("PrivateCode")))
-            {
-                New.RoomId += Config.GetString("PrivateCode");
-            }
-
-            await Notify.SendNotification(new Notification()
-            {
-                Id = NotificationType.SubscriptionUpdatePresence,
-                Msg = new PlayerPresence()
-                {
-                    GameSession = New,
-                    InScreenMode = true,
-                    IsOnline = true,
-                    PlayerId = long.Parse(LocalQuest.Config.GetString("AccountId"))
-                }
-            });
-            Notify.CurrentPresence = new PlayerPresence()
-            {
-                GameSession = New,
-                InScreenMode = true,
-                IsOnline = true,
-                PlayerId = long.Parse(LocalQuest.Config.GetString("AccountId"))
-            };
-            return new MatchmakeResponse()
-            {
-                Result = MatchmakeResult.Success,
-                GameSession = New
-            };
-
         }
 
         [Get("/api/challenge/v1/getCurrent")]
@@ -260,78 +124,91 @@ namespace LocalQuest.Controllers.Mid2018
             };
         }
 
-        [Post("/api/gamesessions/v2/joinroom")]
-        public async Task<MatchmakeResponse> JoinCustomRoom()
+        [Post("/api/gamesessions/v3/joinroom")]
+        public async Task<Models.MidLate2018.MatchmakeResponse> JoinCustomRoom()
         {
             string PostData = GetPostString();
-            JoinRoomRequest? Request = JsonSerializer.Deserialize<JoinRoomRequest>(PostData);
+            Log.Debug(PostData);
+            Models.MidLate2018.JoinRoomRequest? Request = JsonSerializer.Deserialize<Models.MidLate2018.JoinRoomRequest>(PostData);
             if (Request == null)
             {
-                return new MatchmakeResponse()
+                return new Models.MidLate2018.MatchmakeResponse()
                 {
-                    Result = MatchmakeResult.NoSuchGame
+                    Result = Models.MidLate2018.MatchmakeResult.NoSuchGame
                 };
             }
 
             if (RoomManager.AllRooms == null)
             {
                 Log.Warn("rooms not found!");
-                return new MatchmakeResponse()
+                return new Models.MidLate2018.MatchmakeResponse()
                 {
-                    Result = MatchmakeResult.NoSuchRoom
+                    Result = Models.MidLate2018.MatchmakeResult.NoSuchRoom
                 };
             }
-            RoomBase? Room = RoomManager.AllRooms.FirstOrDefault(A => A.RoomId == Request.RoomId);
+            RoomBase? Room = RoomManager.AllRooms.FirstOrDefault(A => A.Name != null && Request.RoomName != null && A.Name.ToLower() == Request.RoomName.ToLower());
             if(Room == null)
             {
-                return new MatchmakeResponse()
+                return new Models.MidLate2018.MatchmakeResponse()
                 {
-                    Result = MatchmakeResult.NoSuchRoom
+                    Result = Models.MidLate2018.MatchmakeResult.NoSuchRoom
                 };
             }
 
             RoomManager.JoinTime(Room.RoomId);
 
-            GameSession NewSession = new GameSession()
+            Models.MidLate2018.GameSession NewSession = new Models.MidLate2018.GameSession()
             {
-                ActivityLevelId = Room.Scenes[0].UnitySceneId,
-                RoomId = Room.Scenes[0].UnitySceneId + Room.RoomId,
-                SupportsScreens = true,
-                SupportsVR = true,
+                RoomSceneLocationId = Room.Scenes[0].UnitySceneId,
+                RoomId = Room.RoomId,
+                PhotonRoomId = Room.Scenes[0].UnitySceneId + Room.RoomId,
                 GameSessionId = 1 + Room.RoomId,
-                Sandbox = Room.Sandbox,
-                CreatorPlayerId = Room.CreatorPlayerId,
+                IsSandbox = Room.Sandbox,
+                RoomSceneId = Room.Scenes[0].SceneId,
+                DataBlobName = Room.Scenes[0].DataBlob,
+                EventId = null,
+                GameInProgress = false,
+                IsFull = false,
+                MaxCapacity = 12,
+                Name = "^" + Room.Name,
                 Private = Request.Private,
-                RecRoomId = Room.RoomId,
+                PhotonRegionId = "us"
             };
 
             if (Request.Private && !string.IsNullOrEmpty(Config.GetString("PrivateCode")))
             {
-                NewSession.RoomId += Config.GetString("PrivateCode");
+                NewSession.PhotonRoomId += Config.GetString("PrivateCode");
             }
 
             await Notify.SendNotification(new Notification()
             {
-                Id = NotificationType.SubscriptionUpdatePresence,
-                Msg = new PlayerPresence()
+                Id = Models.MidLate2018.NotificationType.SubscriptionUpdatePresence,
+                Msg = new Presence()
                 {
                     GameSession = NewSession,
-                    InScreenMode = true,
+                    PlayerType = PlayerType.SCREEN,
                     IsOnline = true,
                     PlayerId = long.Parse(LocalQuest.Config.GetString("AccountId"))
                 }
             });
-            Notify.CurrentPresence = new PlayerPresence()
+            Notify.CurrentPresence = new Presence()
             {
                 GameSession = NewSession,
-                InScreenMode = true,
+                PlayerType = PlayerType.SCREEN,
                 IsOnline = true,
                 PlayerId = long.Parse(LocalQuest.Config.GetString("AccountId"))
             };
-            return new MatchmakeResponse()
+            Log.Debug(JsonSerializer.Serialize(new Models.MidLate2018.MatchmakeResponse()
             {
-                Result = MatchmakeResult.Success,
-                GameSession = NewSession
+                Result = Models.MidLate2018.MatchmakeResult.Success,
+                GameSession = NewSession,
+                RoomDetails = new RoomDetails(Room)
+            }));
+            return new Models.MidLate2018.MatchmakeResponse()
+            {
+                Result = Models.MidLate2018.MatchmakeResult.Success,
+                GameSession = NewSession,
+                RoomDetails = new RoomDetails(Room)
             };
         }
 
@@ -435,6 +312,13 @@ namespace LocalQuest.Controllers.Mid2018
 
         [Post("/api/presence/v2/setscreenmode")]
         public void SetScreen()
+        {
+            // don't need to return anything for this, supposed to set screenmode on your presense
+            // but this is localhost
+        }
+
+        [Post("/api/presence/v1/setplayertype")]
+        public void SetPlayerType()
         {
             // don't need to return anything for this, supposed to set screenmode on your presense
             // but this is localhost
@@ -606,7 +490,79 @@ namespace LocalQuest.Controllers.Mid2018
         [Get("/api/gameconfigs/v1/all")]
         public List<GameConfig> GetAllGameConfigs()
         {
-            return new List<GameConfig>();
+            return new List<GameConfig>()
+            {
+                new GameConfig()
+                {
+                    Key = "UseHeartbeatWebSocket",
+                    Value = "0"
+                },
+                new GameConfig()
+                {
+                    Key = "Door.Creative.Title",
+                    Value = "PUZZLE"
+                },
+                new GameConfig()
+                {
+                    Key = "Door.Creative.Query",
+                    Value = "#puzzle"
+                },
+                new GameConfig()
+                {
+                    Key = "Door.Featured.Title",
+                    Value = "featured"
+                },
+                new GameConfig()
+                {
+                    Key = "Door.Featured.Query",
+                    Value = "#featured"
+                },
+                new GameConfig()
+                {
+                    Key = "Door.Quests.Title",
+                    Value = "quests"
+                },
+                new GameConfig()
+                {
+                    Key = "Door.Quests.Query",
+                    Value = "#rro #quest"
+                },
+                new GameConfig()
+                {
+                    Key = "Door.Shooters.Title",
+                    Value = "PVP"
+                },
+                new GameConfig()
+                {
+                    Key = "Door.Shooters.Query",
+                    Value = "#rro #pvp"
+                },
+                new GameConfig()
+                {
+                    Key = "Door.Sports.Title",
+                    Value = "Sports and Rec"
+                },
+                new GameConfig()
+                {
+                    Key = "Door.Sports.Query",
+                    Value = "#rro #sport"
+                },
+                new GameConfig()
+                {
+                    Key = "forceRegistration",
+                    Value = "false"
+                },
+                new GameConfig()
+                {
+                    Key = "Gift.MaxDaily",
+                    Value = "10"
+                },
+                new GameConfig()
+                {
+                    Key = "Gift.DropChance",
+                    Value = "1"
+                }
+            };
         }
 
         [Get("/api/avatar/v3/items")]
@@ -666,15 +622,34 @@ namespace LocalQuest.Controllers.Mid2018
             return new FullRoom(Room);
         }
 
+        [Get("/api/rooms/v4/details/{var}")]
+        public RoomDetails? GetRoomDetailsV4(string RoomId)
+        {
+            if (RoomManager.AllRooms == null)
+            {
+                Context.Response.StatusCode = 404;
+                Log.Warn("no rooms found!");
+                return null;
+            }
+            RoomBase? Room = RoomManager.AllRooms.FirstOrDefault(A => A.RoomId == long.Parse(RoomId));
+            if (Room == null)
+            {
+                Context.Response.StatusCode = 404;
+                Log.Warn("room not found!");
+                return null;
+            }
+            return new RoomDetails(Room);
+        }
+
         [Get("/api/rooms/v2/myrooms")]
-        public List<FullRoom>? GetMyRooms()
+        public List<Models.MidLate2018.Room>? GetMyRooms()
         {
             DateTime SupportedDate = DateTime.MinValue;
 
             if (string.IsNullOrEmpty(StartManager.GameVersion))
             {
                 Log.Warn("Unknown game version for room filter!");
-                return new List<FullRoom>();
+                return new List<Models.MidLate2018.Room>();
             }
 
             string Year = StartManager.GameVersion.Substring(0, 4);
@@ -689,37 +664,46 @@ namespace LocalQuest.Controllers.Mid2018
             Log.Debug($"{SupportedDate.Year} {SupportedDate.Month} {SupportedDate.Day}");
 
             List<RoomBase> Mine = RoomManager.AllRooms.Where(A => A.MinSupportedDate <= SupportedDate && A.CreatorPlayerId == long.Parse(Config.GetString("AccountId"))).ToList();
-            List<FullRoom> Results = new List<FullRoom>();
+            List<Models.MidLate2018.Room> Results = new List<Models.MidLate2018.Room>();
             foreach (var Room in Mine)
             {
-                Results.Add(new FullRoom(Room));
+                Results.Add(new RoomDetails(Room).Room);
             }
+            return Results;
+        }
+
+        [Get("/api/rooms/v2/baserooms")]
+        public List<Models.MidLate2018.Room>? GetBaseRooms()
+        {
+            DateTime SupportedDate = DateTime.MinValue;
+
+            if (string.IsNullOrEmpty(StartManager.GameVersion))
+            {
+                Log.Warn("Unknown game version for room filter!");
+                return new List<Models.MidLate2018.Room>();
+            }
+
+            string Year = StartManager.GameVersion.Substring(0, 4);
+            string Month = StartManager.GameVersion.Substring(4, 2);
+            string Day = StartManager.GameVersion.Substring(6, 2);
+
+            Log.Debug($"{Year} {Month} {Day}");
+
+            SupportedDate = SupportedDate.AddYears(int.Parse(Year) - 1);
+            SupportedDate = SupportedDate.AddMonths(int.Parse(Month) - 1);
+            SupportedDate = SupportedDate.AddDays(int.Parse(Day) + 5);
+
+            Log.Debug($"{SupportedDate.Year} {SupportedDate.Month} {SupportedDate.Day}");
+
+            List<RoomBase> Base = RoomManager.AllRooms.Where(A => A.Tags.Contains("#base,") && A.MinSupportedDate <= SupportedDate).ToList();
+            List<Models.MidLate2018.Room> Results = Base.Select(A => new RoomDetails(A).Room).ToList();
             return Results;
         }
 
         [Get("/api/rooms/v1/myrooms")]
         public List<FullRoom>? GetMyRoomsV1()
         {
-            DateTime SupportedDate = DateTime.MinValue;
-
-            if (string.IsNullOrEmpty(StartManager.GameVersion))
-            {
-                Log.Warn("Unknown game version for room filter!");
-                return new List<FullRoom>();
-            }
-
-            string Year = StartManager.GameVersion.Substring(0, 4);
-            string Month = StartManager.GameVersion.Substring(4, 2);
-            string Day = StartManager.GameVersion.Substring(6, 2);
-            Log.Debug($"{Year} {Month} {Day}");
-
-            SupportedDate = SupportedDate.AddYears(int.Parse(Year) - 1);
-            SupportedDate = SupportedDate.AddMonths(int.Parse(Month) - 1);
-            SupportedDate = SupportedDate.AddDays(int.Parse(Day) + 5);
-
-            Log.Debug($"{SupportedDate.Year} {SupportedDate.Month} {SupportedDate.Day}");
-
-            List<RoomBase> Mine = RoomManager.AllRooms.Where(A => A.MinSupportedDate <= SupportedDate && A.CreatorPlayerId == long.Parse(Config.GetString("AccountId"))).ToList();
+            List<RoomBase> Mine = RoomManager.AllRooms.Where(A => A.CreatorPlayerId == long.Parse(Config.GetString("AccountId"))).ToList();
             List<FullRoom> Results = new List<FullRoom>();
             foreach (var Room in Mine)
             {
@@ -729,41 +713,21 @@ namespace LocalQuest.Controllers.Mid2018
         }
 
         [Get("/api/rooms/v2/mybookmarkedrooms")]
-        public List<FullRoom>? GetMyBookmarks()
+        public List<Models.MidLate2018.Room>? GetMyBookmarks()
         {
             if(RoomManager.AllRooms == null)
             {
                 Log.Warn("invalid rooms list");
-                return new List<FullRoom>();
+                return new List<Models.MidLate2018.Room>();
             }
-
-            DateTime SupportedDate = DateTime.MinValue;
-
-            if (string.IsNullOrEmpty(StartManager.GameVersion))
-            {
-                Log.Warn("Unknown game version for room filter!");
-                return new List<FullRoom>();
-            }
-
-            string Year = StartManager.GameVersion.Substring(0, 4);
-            string Month = StartManager.GameVersion.Substring(4, 2);
-            string Day = StartManager.GameVersion.Substring(6, 2);
-            Log.Debug($"{Year} {Month} {Day}");
-
-            SupportedDate = SupportedDate.AddYears(int.Parse(Year) - 1);
-            SupportedDate = SupportedDate.AddMonths(int.Parse(Month) - 1);
-            SupportedDate = SupportedDate.AddDays(int.Parse(Day) + 5);
-
-            Log.Debug($"{SupportedDate.Year} {SupportedDate.Month} {SupportedDate.Day}");
-
             List<long> Bookmarks = RoomManager.GetBookmarks();
-            List<FullRoom> Results = new List<FullRoom>();
+            List<Models.MidLate2018.Room> Results = new List<Models.MidLate2018.Room>();
             foreach (var Bookmark in Bookmarks)
             {
                 RoomBase? Room = RoomManager.AllRooms.FirstOrDefault(A => A.RoomId == Bookmark);
-                if(Room != null && Room.MinSupportedDate <= SupportedDate)
+                if(Room != null)
                 {
-                    Results.Add(new FullRoom(Room));
+                    Results.Add(new RoomDetails(Room).Room);
                 }
                 else
                 {
@@ -781,32 +745,12 @@ namespace LocalQuest.Controllers.Mid2018
                 Log.Warn("invalid rooms list");
                 return new List<FullRoom>();
             }
-
-            DateTime SupportedDate = DateTime.MinValue;
-
-            if (string.IsNullOrEmpty(StartManager.GameVersion))
-            {
-                Log.Warn("Unknown game version for room filter!");
-                return new List<FullRoom>();
-            }
-
-            string Year = StartManager.GameVersion.Substring(0, 4);
-            string Month = StartManager.GameVersion.Substring(4, 2);
-            string Day = StartManager.GameVersion.Substring(6, 2);
-            Log.Debug($"{Year} {Month} {Day}");
-
-            SupportedDate = SupportedDate.AddYears(int.Parse(Year) - 1);
-            SupportedDate = SupportedDate.AddMonths(int.Parse(Month) - 1);
-            SupportedDate = SupportedDate.AddDays(int.Parse(Day) + 5);
-
-            Log.Debug($"{SupportedDate.Year} {SupportedDate.Month} {SupportedDate.Day}");
-
             List<long> Bookmarks = RoomManager.GetBookmarks();
             List<FullRoom> Results = new List<FullRoom>();
             foreach (var Bookmark in Bookmarks)
             {
                 RoomBase? Room = RoomManager.AllRooms.FirstOrDefault(A => A.RoomId == Bookmark);
-                if (Room != null && Room.MinSupportedDate <= SupportedDate)
+                if (Room != null)
                 {
                     Results.Add(new FullRoom(Room));
                 }
@@ -826,32 +770,12 @@ namespace LocalQuest.Controllers.Mid2018
                 Log.Warn("invalid rooms list");
                 return new List<FullRoom>();
             }
-
-            DateTime SupportedDate = DateTime.MinValue;
-
-            if (string.IsNullOrEmpty(StartManager.GameVersion))
-            {
-                Log.Warn("Unknown game version for room filter!");
-                return new List<FullRoom>();
-            }
-
-            string Year = StartManager.GameVersion.Substring(0, 4);
-            string Month = StartManager.GameVersion.Substring(4, 2);
-            string Day = StartManager.GameVersion.Substring(6, 2);
-            Log.Debug($"{Year} {Month} {Day}");
-
-            SupportedDate = SupportedDate.AddYears(int.Parse(Year) - 1);
-            SupportedDate = SupportedDate.AddMonths(int.Parse(Month) - 1);
-            SupportedDate = SupportedDate.AddDays(int.Parse(Day) + 5);
-
-            Log.Debug($"{SupportedDate.Year} {SupportedDate.Month} {SupportedDate.Day}");
-
             List<long> Recents = RoomManager.GetRecentRooms();
             List<FullRoom> Results = new List<FullRoom>();
             foreach (var Recent in Recents)
             {
                 RoomBase? Room = RoomManager.AllRooms.FirstOrDefault(A => A.RoomId == Recent);
-                if (Room != null && Room.MinSupportedDate <= SupportedDate)
+                if (Room != null)
                 {
                     Results.Add(new FullRoom(Room));
                 }
@@ -870,24 +794,25 @@ namespace LocalQuest.Controllers.Mid2018
         }
 
         [Get("/api/rooms/v2/search")]
-        public List<FullRoom>? SearchRooms()
+        public List<Models.MidLate2018.Room>? SearchRooms()
         {
-            string? Name = Context.Request.QueryString["name"];
+            string? Name = Context.Request.QueryString["value"];
             if(string.IsNullOrEmpty(Name))
             {
-                return new List<FullRoom>();
+                return new List<Models.MidLate2018.Room>();
             }
             if(RoomManager.AllRooms == null)
             {
                 Log.Warn("Invalid room list");
-                return new List<FullRoom>();
+                return new List<Models.MidLate2018.Room>();
             }
+
             DateTime SupportedDate = DateTime.MinValue;
 
             if (string.IsNullOrEmpty(StartManager.GameVersion))
             {
                 Log.Warn("Unknown game version for room filter!");
-                return new List<FullRoom>();
+                return new List<Models.MidLate2018.Room>();
             }
 
             string Year = StartManager.GameVersion.Substring(0, 4);
@@ -902,7 +827,7 @@ namespace LocalQuest.Controllers.Mid2018
             Log.Debug($"{SupportedDate.Year} {SupportedDate.Month} {SupportedDate.Day}");
 
             List<RoomBase> Rooms = RoomManager.AllRooms.Where(A => A.MinSupportedDate <= SupportedDate && A.Name != null && A.Name.ToLower().Contains(Name.ToLower()) && A.Accessibility == Accessibility.Public).ToList();
-            List<FullRoom> Results = Rooms.Select(A => new FullRoom(A)).ToList();
+            List<Models.MidLate2018.Room> Results = Rooms.Select(A => new RoomDetails(A).Room).ToList();
             return Results;
         }
 
@@ -944,36 +869,11 @@ namespace LocalQuest.Controllers.Mid2018
                     Result = CreateRoomResult.InappropriateDescription
                 };
             }
-
-            DateTime SupportedDate = DateTime.MinValue;
-
-            if (string.IsNullOrEmpty(StartManager.GameVersion))
-            {
-                Log.Warn("Unknown game version for room filter!");
-                return new CreateModifyRoomResponse()
-                {
-                    Result = CreateRoomResult.Unknown
-                }; 
-            }
-
-            string Year = StartManager.GameVersion.Substring(0, 4);
-            string Month = StartManager.GameVersion.Substring(4, 2);
-            string Day = StartManager.GameVersion.Substring(6, 2);
-            Log.Debug($"{Year} {Month} {Day}");
-
-            SupportedDate = SupportedDate.AddYears(int.Parse(Year) - 1);
-            SupportedDate = SupportedDate.AddMonths(int.Parse(Month) - 1);
-            SupportedDate = SupportedDate.AddDays(int.Parse(Day) + 5);
-
-            Log.Debug($"{SupportedDate.Year} {SupportedDate.Month} {SupportedDate.Day}");
-
             RoomBase New = new RoomBase()
             { 
                 AllowScreenMode = Request.Instanced,
                 Sandbox = Request.IsSandbox,
                 CreationTime = DateTime.Now,
-                MinSupportedDate = SupportedDate,
-                RRO = false,
                 CreatorPlayerId = int.Parse(LocalQuest.Config.GetString("AccountId")),
                 Description = Request.Description,
                 ImageName = "DefaultPFP",
@@ -993,12 +893,12 @@ namespace LocalQuest.Controllers.Mid2018
             RoomManager.AddLocalRoom(New);
             if (Notify.CurrentPresence != null && Notify.CurrentPresence.GameSession != null)
             {
-                Notify.CurrentPresence.GameSession.RecRoomId = New.RoomId;
+                Notify.CurrentPresence.GameSession.RoomId = New.RoomId;
                 Notify.CurrentPresence.GameSession.GameSessionId = 1 + New.RoomId;
             }
             await Notify.SendNotification(new Notification()
             {
-                Id = NotificationType.SubscriptionUpdatePresence,
+                Id = Models.MidLate2018.NotificationType.SubscriptionUpdatePresence,
                 Msg = Notify.CurrentPresence
             });
             return new CreateModifyRoomResponse()
@@ -1081,7 +981,7 @@ namespace LocalQuest.Controllers.Mid2018
             RoomManager.UpdateLocalRoom(Room);
             await Notify.SendNotification(new Notification()
             {
-                Id = NotificationType.SubscriptionUpdateRoom,
+                Id = Models.MidLate2018.NotificationType.SubscriptionUpdateRoom,
                 Msg = new FullRoom(Room)
             });
             return new CreateModifyRoomResponse()
@@ -1126,7 +1026,7 @@ namespace LocalQuest.Controllers.Mid2018
             RoomManager.UpdateLocalRoom(Room);
             await Notify.SendNotification(new Notification()
             {
-                Id = NotificationType.SubscriptionUpdateRoom,
+                Id = Models.MidLate2018.NotificationType.SubscriptionUpdateRoom,
                 Msg = new FullRoom(Room)
             });
             return new CreateModifyRoomResponse()
@@ -1178,7 +1078,7 @@ namespace LocalQuest.Controllers.Mid2018
             RoomManager.UpdateLocalRoom(Room);
             await Notify.SendNotification(new Notification()
             {
-                Id = NotificationType.SubscriptionUpdateRoom,
+                Id = Models.MidLate2018.NotificationType.SubscriptionUpdateRoom,
                 Msg = new FullRoom(Room)
             });
             return new CreateModifyRoomResponse()
@@ -1237,7 +1137,7 @@ namespace LocalQuest.Controllers.Mid2018
             RoomManager.UpdateLocalRoom(Room);
             await Notify.SendNotification(new Notification()
             {
-                Id = NotificationType.SubscriptionUpdateRoom,
+                Id = Models.MidLate2018.NotificationType.SubscriptionUpdateRoom,
                 Msg = new FullRoom(Room)
             });
             return new CreateModifyRoomResponse()
@@ -1274,14 +1174,14 @@ namespace LocalQuest.Controllers.Mid2018
             RoomManager.UpdateLocalRoom(Room);
             await Notify.SendNotification(new Notification()
             {
-                Id = NotificationType.SubscriptionUpdateRoom,
+                Id = Models.MidLate2018.NotificationType.SubscriptionUpdateRoom,
                 Msg = new FullRoom(Room)
             });
             return new FullRoom(Room);
         }
 
         [Get("/api/rooms/v2/{var}")]
-        public FullRoom? GetRoom(string RoomId)
+        public Models.MidLate2018.Room? GetRoom(string RoomId)
         {
             if (RoomManager.AllRooms == null)
             {
@@ -1296,7 +1196,23 @@ namespace LocalQuest.Controllers.Mid2018
                 Log.Warn("room not found!");
                 return null;
             }
-            return new FullRoom(Room);
+            return new RoomDetails(Room).Room;
+        }
+
+        [Get("/api/rooms/v1/filters")]
+        public RoomFilters GetFilters()
+        {
+            return new RoomFilters();
+        }
+
+        [Post("/api/presence/v3/heartbeat")]
+        public HeartbeatResponse Heartbeat()
+        {
+            return new HeartbeatResponse()
+            {
+                Error = "",
+                Presence = Notify.CurrentPresence
+            };
         }
 
         [Post("/api/rooms/v1/bookmark")]
@@ -1331,10 +1247,47 @@ namespace LocalQuest.Controllers.Mid2018
             }
             DateTime SupportedDate = DateTime.MinValue;
 
-            if (string.IsNullOrEmpty(StartManager.GameVersion))
+            if(string.IsNullOrEmpty(StartManager.GameVersion))
             {
                 Log.Warn("Unknown game version for room filter!");
                 return Results;
+            }
+
+            string Year = StartManager.GameVersion.Substring(0, 4);
+            Log.Debug("Year: " + Year);
+            string Month = StartManager.GameVersion.Substring(4, 2);
+            Log.Debug("Month: " + Month);
+            string Day = StartManager.GameVersion.Substring(6, 2);
+            Log.Debug("Day: " + Day);
+
+            foreach (var Room in RoomManager.AllRooms.Where(A => A.Accessibility == Accessibility.Public))
+            {
+                Results.Add(new FullRoom(Room));
+            }
+            return Results;
+        }
+
+        [Get("/api/rooms/v1/hot")]
+        public List<Models.MidLate2018.Room> HotRooms()
+        {
+            string? Tags = Context.Request.QueryString["Tags"];
+            if (Tags != null)
+            {
+                Log.Debug(Tags);
+            }
+            List<Models.MidLate2018.Room> Results = new List<Models.MidLate2018.Room>();
+            if (RoomManager.AllRooms == null)
+            {
+                Log.Warn("no rooms found!");
+                return Results;
+            }
+
+            DateTime SupportedDate = DateTime.MinValue;
+
+            if (string.IsNullOrEmpty(StartManager.GameVersion))
+            {
+                Log.Warn("Unknown game version for room filter!");
+                return new List<Models.MidLate2018.Room>();
             }
 
             string Year = StartManager.GameVersion.Substring(0, 4);
@@ -1350,7 +1303,7 @@ namespace LocalQuest.Controllers.Mid2018
 
             foreach (var Room in RoomManager.AllRooms.Where(A => A.MinSupportedDate <= SupportedDate && A.Accessibility == Accessibility.Public))
             {
-                Results.Add(new FullRoom(Room));
+                Results.Add(new RoomDetails(Room).Room);
             }
             return Results;
         }
@@ -1423,7 +1376,7 @@ namespace LocalQuest.Controllers.Mid2018
             Config.SetString("PFP", ImageName);
             await Notify.SendNotification(new Notification()
             {
-                Id = NotificationType.SubscriptionUpdateProfile,
+                Id = Models.MidLate2018.NotificationType.SubscriptionUpdateProfile,
                 Msg = new Profile()
             });
             return new SuccessResponse()
@@ -1464,7 +1417,7 @@ namespace LocalQuest.Controllers.Mid2018
             Config.SetString("DisplayName", Name);
             await Notify.SendNotification(new Notification()
             {
-                Id = NotificationType.SubscriptionUpdateProfile,
+                Id = Models.MidLate2018.NotificationType.SubscriptionUpdateProfile,
                 Msg = new Profile()
             });
             return new SuccessResponse()
@@ -1497,7 +1450,7 @@ namespace LocalQuest.Controllers.Mid2018
             }
             await Notify.SendNotification(new Notification()
             {
-                Id = NotificationType.SubscriptionUpdateProfile,
+                Id = Models.MidLate2018.NotificationType.SubscriptionUpdateProfile,
                 Msg = new Profile()
             });
             return new SuccessResponse()
@@ -1538,7 +1491,7 @@ namespace LocalQuest.Controllers.Mid2018
             Config.SetString("Bio", Bio);
             await Notify.SendNotification(new Notification()
             {
-                Id = NotificationType.SubscriptionUpdateProfile,
+                Id = Models.MidLate2018.NotificationType.SubscriptionUpdateProfile,
                 Msg = new Profile()
             });
             return new SuccessResponse()
