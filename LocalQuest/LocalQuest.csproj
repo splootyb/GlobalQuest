@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <PackageReference Include="HttpMultipartParser" Version="8.4.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
   </ItemGroup>
 
   <ItemGroup>

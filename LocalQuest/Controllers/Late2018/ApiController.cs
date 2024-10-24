@@ -4,6 +4,9 @@ using LocalQuest.Models.Late2018;
 using LocalQuest.Models.Mid2018;
 using LocalQuest.Models.MidLate2018;
 using QuerryNetworking.Core;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -548,6 +551,65 @@ namespace LocalQuest.Controllers.Late2018
             if (Image.Length == 0)
             {
                 Image = Convert.FromBase64String(AccountManager.DefaultPFP);
+            }
+
+            bool Square = false;
+
+            string? cropSquare = Context.Request.QueryString["cropSquare"];
+
+            if (!string.IsNullOrEmpty(cropSquare) && (cropSquare == "1" || cropSquare == "true"))
+            {
+                Square = true;
+            }
+
+            int width = 512;
+            int height = 0;
+
+            string? H = Context.Request.QueryString["height"];
+            string? W = Context.Request.QueryString["width"];
+            if(!string.IsNullOrEmpty(W) && W.All(char.IsDigit))
+            {
+                width = int.Parse(W);
+            }
+            if (!string.IsNullOrEmpty(H) && H.All(char.IsDigit))
+            {
+                height = int.Parse(H);
+            }
+
+            using (SixLabors.ImageSharp.Image I = SixLabors.ImageSharp.Image.Load(Image))
+            {
+                if (Square)
+                {
+                    Size NewSize = new Size()
+                    {
+                        Width = (int)width,
+                        Height = (int)height
+                    };
+                    int size = Math.Min(I.Width, I.Height);
+                    Rectangle CropRectangle = new Rectangle()
+                    {
+                        X = (I.Width - size) / 2,
+                        Y = (I.Height - size) / 2,
+                        Width = size,
+                        Height = size
+                    };
+                    int Resize = Math.Max((int)width, (int)height);
+                    I.Mutate(x => x.Crop(CropRectangle).Resize(Resize, Resize));
+                }
+                else
+                {
+                    Size NewSize = new Size()
+                    {
+                        Width = (int)width,
+                        Height = (int)height
+                    };
+                    I.Mutate(x => x.Resize(NewSize));
+                }
+                using (var ms = new MemoryStream())
+                {
+                    I.Save(ms, new PngEncoder());
+                    Image = ms.ToArray();
+                }
             }
             Context.Response.Headers.Add("Content-Signature", "key-id=KEY:RSA:p1.rec.net;data=" + Convert.ToBase64String(Encoding.UTF8.GetBytes("fake signature [|X3]")));
             return Image;
