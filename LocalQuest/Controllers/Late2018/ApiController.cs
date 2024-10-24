@@ -1119,6 +1119,25 @@ namespace LocalQuest.Controllers.Late2018
             };
         }
 
+        [Post("/api/images/v4/uploadsaved")]
+        public async Task<ImageResult> UploadImageV4()
+        {
+            byte[] Data = GetPostBytes();
+            var Parse = MultipartFormDataParser.Parse(new MemoryStream(Data), boundary: Multipart.GetBoundary(Data, Context));
+
+            FilePart F = Parse.Files[0];
+            Log.Debug("image name: " + F.Name);
+            MemoryStream ImageData = new MemoryStream();
+            F.Data.CopyTo(ImageData);
+            byte[] AAAA = ImageData.ToArray();
+            string ImageName = "Image" + new Random().Next();
+            FileManager.WriteBytes("Images/" + ImageName + ".png", AAAA);
+            return new ImageResult()
+            {
+                ImageName = ImageName,
+            };
+        }
+
         [Post("//api/images/v4/uploadtransient")]
         public async Task<ImageResult> UploadImageTransient()
         {

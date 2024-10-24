@@ -66,6 +66,7 @@ namespace LocalQuest
                 Log.Warn("AllRooms doesn't exist?!");
                 return;
             }
+
             AllRooms.Add(new RoomBase()
             {
                 Sandbox = false,
@@ -73,10 +74,11 @@ namespace LocalQuest
                 Accessibility = Accessibility.Unlisted,
                 CreationTime = DateTime.MinValue.AddYears(2017).AddMonths(7).AddDays(26),
                 MinSupportedDate = DateTime.MinValue.AddYears(2017).AddMonths(7).AddDays(26),
-                CreatorPlayerId = 1,
+                CreatorPlayerId = int.Parse(Config.GetString("AccountId")),
                 Description = "Your private room",
                 ImageName = "DefaultPFP",
                 Name = "DormRoom",
+                DormRoom = true,
                 RoomId = 100,
                 Scenes = new List<SceneBase>()
                 {
@@ -154,7 +156,7 @@ namespace LocalQuest
                 Name = "Crescendo",
                 RRO = true,
                 RoomId = 103,
-                Tags = "#base," + TagType.AGOnly,
+                Tags = "",
                 Scenes = new List<SceneBase>()
                 {
                     new SceneBase()
@@ -304,6 +306,7 @@ namespace LocalQuest
         public string? ImageName { get; set; }
         public bool Sandbox { get; set; }
         public bool RRO { get; set; } = false;
+        public bool DormRoom { get; set; } = false;
         public int CreatorPlayerId { get; set; }
         public bool? AllowScreenMode { get; set; }
         public string Tags { get; set; } = "";
