@@ -544,11 +544,10 @@ namespace LocalQuest.Controllers.Late2018
                 {
                     FileManager.WriteBytes("Images/" + ImageName, Image);
                 }
-                else
-                {
-                    Context.Response.StatusCode = 404;
-                    return new byte[0];
-                }
+            }
+            if (Image.Length == 0)
+            {
+                Image = Convert.FromBase64String(AccountManager.DefaultPFP);
             }
             Context.Response.Headers.Add("Content-Signature", "key-id=KEY:RSA:p1.rec.net;data=" + Convert.ToBase64String(Encoding.UTF8.GetBytes("fake signature [|X3]")));
             return Image;
@@ -1501,10 +1500,13 @@ namespace LocalQuest.Controllers.Late2018
         public List<Models.MidLate2018.Room> HotRooms()
         {
             string? Tags = Context.Request.QueryString["Tags"];
+            string[] TagValues = new string[0];
             if (Tags != null)
             {
                 Log.Debug(Tags);
+                TagValues = Tags.Split(" ");
             }
+
             List<Models.MidLate2018.Room> Results = new List<Models.MidLate2018.Room>();
             if (RoomManager.AllRooms == null)
             {
@@ -1531,7 +1533,11 @@ namespace LocalQuest.Controllers.Late2018
 
             Log.Debug($"{SupportedDate.Year} {SupportedDate.Month} {SupportedDate.Day}");
 
-            foreach (var Room in RoomManager.AllRooms.Where(A => A.MinSupportedDate <= SupportedDate && A.Accessibility == Accessibility.Public))
+            TagValues = TagValues.Where(A => !string.IsNullOrEmpty(A)).ToArray();
+
+            Log.Debug(JsonSerializer.Serialize(TagValues));
+
+            foreach (var Room in RoomManager.AllRooms.Where(A => A.MinSupportedDate <= SupportedDate && TagValues.All(Tag => A.Tags.Contains(Tag + ",")) && A.Accessibility == Accessibility.Public))
             {
                 Results.Add(new RoomDetails(Room).Room);
             }

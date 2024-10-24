@@ -63,6 +63,11 @@ namespace LocalQuest
             try
             {
                 HttpResponseMessage Message = await Client.GetAsync(BaseURL + Name + "?v=" + new Random().Next(0, 5));
+                if(Message.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    Log.Error("Failed to FIND network file.");
+                    return new byte[0];
+                }
                 return await Message.Content.ReadAsByteArrayAsync();
             }
             catch
