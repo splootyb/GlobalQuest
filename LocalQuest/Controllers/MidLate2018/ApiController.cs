@@ -831,83 +831,6 @@ namespace LocalQuest.Controllers.MidLate2018
             return Results;
         }
 
-        [Post("/api/rooms/v2/create")]
-        public async Task<CreateModifyRoomResponse?> CreateSandboxRoom()
-        {
-            string PostData = GetPostString();
-            CreateRoomRequest? Request = JsonSerializer.Deserialize<CreateRoomRequest>(PostData);
-            if(Request == null)
-            {
-                Log.Warn("Invalid create room request!");
-                return null;
-            }
-            if(!WordFilter.IsPure(Request.Name))
-            {
-                return new CreateModifyRoomResponse()
-                { 
-                    Result = CreateRoomResult.InappropriateName
-                };
-            }
-            if(RoomManager.AllRooms == null)
-            {
-                return new CreateModifyRoomResponse()
-                {
-                    Result = CreateRoomResult.RoomDoesNotExist
-                };
-            }
-            if(RoomManager.AllRooms.FirstOrDefault(A => A.Name != null && A.Name.ToLower() == Request.Name.ToLower()) != null)
-            {
-                return new CreateModifyRoomResponse()
-                {
-                    Result = CreateRoomResult.DuplicateName
-                };
-            }
-            if (!WordFilter.IsPure(Request.Description))
-            {
-                return new CreateModifyRoomResponse()
-                {
-                    Result = CreateRoomResult.InappropriateDescription
-                };
-            }
-            RoomBase New = new RoomBase()
-            { 
-                AllowScreenMode = Request.Instanced,
-                Sandbox = Request.IsSandbox,
-                CreationTime = DateTime.Now,
-                CreatorPlayerId = int.Parse(LocalQuest.Config.GetString("AccountId")),
-                Description = Request.Description,
-                ImageName = "DefaultPFP",
-                Name = Request.Name,
-                RoomId = new Random().Next(),
-                Accessibility = Request.Accessibility,
-                Scenes = new List<SceneBase>()
-                { 
-                    new SceneBase()
-                    {
-                        Name = "Home",
-                        UnitySceneId = Request.ActivityLevelId,
-                        DataBlob = null
-                    }
-                }
-            };
-            RoomManager.AddLocalRoom(New);
-            if (Notify.CurrentPresence != null && Notify.CurrentPresence.GameSession != null)
-            {
-                Notify.CurrentPresence.GameSession.RoomId = New.RoomId;
-                Notify.CurrentPresence.GameSession.GameSessionId = 1 + New.RoomId;
-            }
-            await Notify.SendNotification(new Notification()
-            {
-                Id = Models.MidLate2018.NotificationType.SubscriptionUpdatePresence,
-                Msg = Notify.CurrentPresence
-            });
-            return new CreateModifyRoomResponse()
-            {
-                Result = CreateRoomResult.Success,
-                Room = new FullRoom(New)
-            };
-        }
-
         [Post("//api/images/v3/uploadsaved")]
         public async Task<ImageResult> UploadImage()
         {
@@ -946,204 +869,76 @@ namespace LocalQuest.Controllers.MidLate2018
             };
         }
 
-        [Post("/api/rooms/v1/modify/imagename")]
-        public async Task<CreateModifyRoomResponse> ModifyRoomImage()
+        [Post("/api/rooms/v1/clone")]
+        public Models.MidLate2018.CreateModifyRoomResponse? CloneRoom()
         {
             string PostData = GetPostString();
-            ModifyRoomImageRequest? Request = JsonSerializer.Deserialize<ModifyRoomImageRequest>(PostData);
-
-            if(Request == null)
+            RoomCloneRequest? CloneRequest = JsonSerializer.Deserialize<RoomCloneRequest>(PostData);
+            if (CloneRequest == null)
             {
-                Log.Warn("Invalid request");
-                return new CreateModifyRoomResponse()
+                Log.Warn("Invalid clone room request!");
+                return null;
+            }
+            if (string.IsNullOrEmpty(CloneRequest.Name))
+            {
+                Log.Warn("Invalid name!");
+                return null;
+            }
+            if (!WordFilter.IsPure(CloneRequest.Name))
+            {
+                return new Models.MidLate2018.CreateModifyRoomResponse()
                 {
-                    Result = CreateRoomResult.Unknown
+                    Result = LateRoomResult.InappropriateName
                 };
             }
             if (RoomManager.AllRooms == null)
             {
-                Log.Warn("No rooms found");
-                return new CreateModifyRoomResponse()
+                return new Models.MidLate2018.CreateModifyRoomResponse()
                 {
-                    Result = CreateRoomResult.RoomDoesNotExist
+                    Result = LateRoomResult.RoomDoesNotExist
                 };
             }
-            RoomBase? Room = RoomManager.AllRooms.FirstOrDefault(A => A.RoomId == Request.RoomId);
-            if (Room == null)
+            if (RoomManager.AllRooms.FirstOrDefault(A => A.Name != null && A.Name.ToLower() == CloneRequest.Name.ToLower()) != null)
             {
-                Log.Warn("Room not found");
-                return new CreateModifyRoomResponse()
+                return new Models.MidLate2018.CreateModifyRoomResponse()
                 {
-                    Result = CreateRoomResult.RoomDoesNotExist
+                    Result = LateRoomResult.DuplicateName
                 };
             }
-            Room.ImageName = Request.ImageName;
-            RoomManager.UpdateLocalRoom(Room);
-            await Notify.SendNotification(new Notification()
-            {
-                Id = Models.MidLate2018.NotificationType.SubscriptionUpdateRoom,
-                Msg = new FullRoom(Room)
-            });
-            return new CreateModifyRoomResponse()
-            {
-                Result = CreateRoomResult.Success,
-                Room = new FullRoom(Room)
-            };
-        }
 
-        [Post("/api/rooms/v1/modify/accessibility")]
-        public async Task<CreateModifyRoomResponse> ModifyRoomAccess()
-        {
-            string PostData = GetPostString();
-            ModifyRoomAccessRequest? Request = JsonSerializer.Deserialize<ModifyRoomAccessRequest>(PostData);
+            RoomBase? Request = RoomManager.AllRooms.FirstOrDefault(A => A.RoomId == CloneRequest.RoomId);
 
             if (Request == null)
             {
-                Log.Warn("Invalid request");
-                return new CreateModifyRoomResponse()
+                return new Models.MidLate2018.CreateModifyRoomResponse()
                 {
-                    Result = CreateRoomResult.Unknown
+                    Result = LateRoomResult.RoomDoesNotExist
                 };
             }
-            if (RoomManager.AllRooms == null)
+
+            RoomBase New = new RoomBase()
             {
-                Log.Warn("No rooms found");
-                return new CreateModifyRoomResponse()
-                {
-                    Result = CreateRoomResult.RoomDoesNotExist
-                };
-            }
-            RoomBase? Room = RoomManager.AllRooms.FirstOrDefault(A => A.RoomId == Request.RoomId);
-            if (Room == null)
-            {
-                Log.Warn("Room not found");
-                return new CreateModifyRoomResponse()
-                {
-                    Result = CreateRoomResult.RoomDoesNotExist
-                };
-            }
-            Room.Accessibility = Request.Accessibility;
-            RoomManager.UpdateLocalRoom(Room);
-            await Notify.SendNotification(new Notification()
-            {
-                Id = Models.MidLate2018.NotificationType.SubscriptionUpdateRoom,
-                Msg = new FullRoom(Room)
-            });
-            return new CreateModifyRoomResponse()
-            {
-                Result = CreateRoomResult.Success,
-                Room = new FullRoom(Room)
+                AllowScreenMode = Request.AllowScreenMode,
+                Sandbox = Request.Sandbox,
+                CreationTime = DateTime.Now,
+                CreatorPlayerId = int.Parse(LocalQuest.Config.GetString("AccountId")),
+                Description = Request.Description,
+                ImageName = Request.ImageName,
+                Name = CloneRequest.Name,
+                RoomId = new Random().Next(),
+                Accessibility = Request.Accessibility,
+                Scenes = Request.Scenes,
+                MinSupportedDate = Request.MinSupportedDate,
+                DormRoom = Request.DormRoom,
+                RRO = false,
+                Tags = Request.Tags,
             };
-        }
+            RoomManager.AddLocalRoom(New);
 
-        [Post("/api/rooms/v1/modify/description")]
-        public async Task<CreateModifyRoomResponse> ModifyRoomDesc()
-        {
-            string PostData = GetPostString();
-            ModifyRoomDescriptionRequest? Request = JsonSerializer.Deserialize<ModifyRoomDescriptionRequest>(PostData);
-
-            if (Request == null)
+            return new Models.MidLate2018.CreateModifyRoomResponse()
             {
-                Log.Warn("Invalid request");
-                return new CreateModifyRoomResponse()
-                {
-                    Result = CreateRoomResult.Unknown
-                };
-            }
-            if (RoomManager.AllRooms == null)
-            {
-                Log.Warn("No rooms found");
-                return new CreateModifyRoomResponse()
-                {
-                    Result = CreateRoomResult.RoomDoesNotExist
-                };
-            }
-            RoomBase? Room = RoomManager.AllRooms.FirstOrDefault(A => A.RoomId == Request.RoomId);
-            if (Room == null)
-            {
-                Log.Warn("Room not found");
-                return new CreateModifyRoomResponse()
-                {
-                    Result = CreateRoomResult.RoomDoesNotExist
-                };
-            }
-            if (!WordFilter.IsPure(Request.Description))
-            {
-                return new CreateModifyRoomResponse()
-                {
-                    Result = CreateRoomResult.InappropriateDescription
-                };
-            }
-            Room.Description = Request.Description;
-            RoomManager.UpdateLocalRoom(Room);
-            await Notify.SendNotification(new Notification()
-            {
-                Id = Models.MidLate2018.NotificationType.SubscriptionUpdateRoom,
-                Msg = new FullRoom(Room)
-            });
-            return new CreateModifyRoomResponse()
-            {
-                Result = CreateRoomResult.Success,
-                Room = new FullRoom(Room)
-            };
-        }
-
-        [Post("/api/rooms/v1/modify/name")]
-        public async Task<CreateModifyRoomResponse> ModifyRoomName()
-        {
-            string PostData = GetPostString();
-            ModifyRoomNameRequest? Request = JsonSerializer.Deserialize<ModifyRoomNameRequest>(PostData);
-
-            if (Request == null)
-            {
-                Log.Warn("Invalid request");
-                return new CreateModifyRoomResponse()
-                {
-                    Result = CreateRoomResult.Unknown
-                };
-            }
-            if (RoomManager.AllRooms == null)
-            {
-                Log.Warn("No rooms found");
-                return new CreateModifyRoomResponse()
-                {
-                    Result = CreateRoomResult.RoomDoesNotExist
-                };
-            }
-            if (RoomManager.AllRooms.FirstOrDefault(A => A.Name != null && A.Name.ToLower() == Request.Name.ToLower()) != null)
-            {
-                return new CreateModifyRoomResponse()
-                {
-                    Result = CreateRoomResult.DuplicateName
-                };
-            }
-            RoomBase? Room = RoomManager.AllRooms.FirstOrDefault(A => A.RoomId == Request.RoomId);
-            if (Room == null)
-            {
-                Log.Warn("Room not found");
-                return new CreateModifyRoomResponse()
-                {
-                    Result = CreateRoomResult.RoomDoesNotExist
-                };
-            }
-            if (!WordFilter.IsPure(Request.Name))
-            {
-                return new CreateModifyRoomResponse()
-                {
-                    Result = CreateRoomResult.InappropriateName
-                };
-            }
-            Room.Name = Request.Name;
-            RoomManager.UpdateLocalRoom(Room);
-            await Notify.SendNotification(new Notification()
-            {
-                Id = Models.MidLate2018.NotificationType.SubscriptionUpdateRoom,
-                Msg = new FullRoom(Room)
-            });
-            return new CreateModifyRoomResponse()
-            {
-                Result = CreateRoomResult.Success,
-                Room = new FullRoom(Room)
+                Result = LateRoomResult.Success,
+                RoomDetails = new RoomDetails(New)
             };
         }
 
@@ -1178,6 +973,39 @@ namespace LocalQuest.Controllers.MidLate2018
                 Msg = new FullRoom(Room)
             });
             return new FullRoom(Room);
+        }
+
+        [Post("/api/rooms/v2/saveData/{var}")]
+        public async Task<RoomDetails?> SaveRoomV2(string RoomId)
+        {
+            byte[] Data = GetPostBytes();
+            var Parse = MultipartFormDataParser.Parse(new MemoryStream(Data), boundary: Multipart.GetBoundary(Data, Context));
+
+            FilePart F = Parse.Files[0];
+            MemoryStream RoomData = new MemoryStream();
+            F.Data.CopyTo(RoomData);
+            byte[] AAAA = RoomData.ToArray();
+            string RoomName = "RoomFile" + new Random().Next();
+            FileManager.WriteBytes("RoomData/" + RoomName + ".room", AAAA);
+            if (RoomManager.AllRooms == null)
+            {
+                Log.Warn("No rooms found");
+                return null;
+            }
+            RoomBase? Room = RoomManager.AllRooms.FirstOrDefault(A => A.RoomId == long.Parse(RoomId));
+            if (Room == null)
+            {
+                Log.Warn("Room not found");
+                return null;
+            }
+            Room.Scenes[0].DataBlob = RoomName;
+            RoomManager.UpdateLocalRoom(Room);
+            await Notify.SendNotification(new Notification()
+            {
+                Id = Models.MidLate2018.NotificationType.SubscriptionUpdateRoom,
+                Msg = new RoomDetails(Room)
+            });
+            return new RoomDetails(Room);
         }
 
         [Get("/api/rooms/v2/{var}")]

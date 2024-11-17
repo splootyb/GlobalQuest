@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace LocalQuest
 {
+    // manages accounts
     internal static class AccountManager
     {
         // should store separate, but I am lazy right now!!

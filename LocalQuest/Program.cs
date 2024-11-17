@@ -11,56 +11,88 @@ namespace LocalQuest
     {
         public static void Main(string[] args)
         {
+            // clears the console
             Console.Clear();
+            // sets the LocalQuest log level to debug
             Log.LogLevel = LogLevel.Debug;
+            // set output to unicode (for emojis 🤑)
             Console.OutputEncoding = Encoding.Unicode;
+            // set the console title to LocalQuest
             Console.Title = "LocalQuest";
+            // hide the cursor for fancy ui 🙀
             Console.CursorVisible = false;
+            // setup config file
             Config.Setup();
+            // setup files
             FileManager.Setup();
+            // setup defaults
             Setup.Defaults();
+            // waits for the RoomManager to download the rooms
             RoomManager.DownloadRooms().Wait();
+            // waits for the AvatarManager to setup the avatar items
             AvatarManager.SetupAvatarItems().Wait();
+
+            // if QuerryNetworking debug logging is enabled
             if (Config.GetBool("NetworkDebug"))
             {
+                // set the log level!!
                 QuerryNetworking.Logging.Log.LogLevel = QuerryNetworking.Logging.LogLevel.Debug;
             }
             else
             {
+                // else set it to info
                 QuerryNetworking.Logging.Log.LogLevel = QuerryNetworking.Logging.LogLevel.Info;
             }
+            // if autodetect doesn't exist
             if(string.IsNullOrEmpty(Config.GetString("AutoDetect")))
             {
+                // set it true
                 Config.SetBool("AutoDetect", true);
             }
+            // if private dorm doesn't exist
             if(!Config.Exists("PrivateDorm"))
             {
+                // default true
                 Config.SetBool("PrivateDorm", true);
             }
+            // if level config doesn't exist
             if (!Config.Exists("Level"))
             {
+                // set it to 1 ✨
                 Config.SetInt("Level", 1);
             }
 
+            // if app hasn't been run before
             if (!Config.GetBool("FirstRun"))
             {
+                // show setup/tutorial
                 Setup.Tutorial();
+                // clear the console
                 Console.Clear();
             }
+            // write the title
             UiTools.WriteTitle();
+            // subtitle
             Console.WriteLine("LocalQuest - EpicQuest but localhost?! YEAH");
 
+            // string to add to the end of 'server version:'
             string BetaString = "";
+            // if beta
             if(Setup.Beta)
             {
+                // add BETA
                 BetaString = " [BETA]";
             }
 
+            // write the info
             Console.WriteLine("Server Version: " + Setup.Version + BetaString);
 
+            // show welcome banner
             UiTools.ShowBanner("Welcome, " + Config.GetString("DisplayName"));
+            // reset foreground color 😭
             Console.ForegroundColor = ConsoleColor.White;
 
+            // main menu options
             List<string> Options = new List<string>()
             {
                 "Start server",
@@ -68,43 +100,56 @@ namespace LocalQuest
                 "Settings",
             };
 
+            // create a random
             Random R = new Random();
+            // 1/500 chance
             if(R.Next(0,500) == 1)
             {
+                // for SILLY
                 Options.Add("What's mew :3");
             }
             else
             {
+                // else normal :(
                 Options.Add("What's new");
             }
 
+            // add join the discord option
             Options.Add("Join the discord");
 
+            // get user selection
             string Selection = UiTools.WriteControls(Options);
 
+            // switch selection
             switch (Selection)
             {
                 case "Start server":
+                    // build choice (which will go to auto-detect if enabled)
                     BuildChoice();
                     return;
 
                 case "Settings":
+                    // go to settings
                     Settings();
                     return;
 
                 case "Modify profile":
+                    // go to profile settings
                     ProfileSettings();
                     return;
 
                 case "What's new":
+                    // go to what's new
                     WhatNew();
                     return;
 
                 case "What's mew :3":
+                    // go to what's new but SILLY
                     WhatNew();
                     return;
 
                 case "Join the discord":
+                    // start process for opening discord
                     System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo()
                     { 
                         FileName = "https://discord.gg/epicquest",
@@ -117,10 +162,14 @@ namespace LocalQuest
 
         static void Settings()
         {
+            // clear the console
             Console.Clear();
+            // write the title
             UiTools.WriteTitle();
+            // write the subtitle
             Console.WriteLine("LocalQuest - Settings");
 
+            // the settings options
             List<string> Controls = new List<string>()
             {
                 "Go back",
@@ -132,77 +181,103 @@ namespace LocalQuest
                 "Log QuerryNetworking debug [currently: " + Config.GetBool("NetworkDebug") + "]",
             };
 
+            // get if RebornRec compatibility mode is enabled
             bool ReCompat = Config.GetBool("ReCompat");
-            if(!ReCompat)
+            // if it's not
+            if (!ReCompat)
             {
+                // show server port override option
                 Controls.Add("Server port override [currently: " + SettingStringValue("ServerPort") + "]");
-                Controls.Add("RebornRec compatibility mode [currently: " + Config.GetBool("ReCompat") + "]");
-            }
-            else
-            {
-                Controls.Add("RebornRec compatibility mode [currently: " + Config.GetBool("ReCompat") + "]");
             }
 
+            // add rebornrec compatibility option
+            Controls.Add("RebornRec compatibility mode [currently: " + Config.GetBool("ReCompat") + "]");
+
+            // write the controls
             string Selection = UiTools.WriteControls(Controls);
 
+            // switch selection
             switch (Selection)
             {
                 case "Go back":
+                    // go back to the main menu
                     Main(new string[0]);
                     return;
 
                 case "Skip tutorial":
+                    // skip the tutorial by setting OOBE to '100' (which doesn't work on every build LOLL)
                     LocalQuest.Settings.SetSetting("Recroom.OOBE", "100");
+                    // clear the console
                     Console.Clear();
+                    // write the title
                     UiTools.WriteTitle();
+                    // show complete
                     UiTools.ShowBanner("Complete!");
+                    // press to go back
                     Console.WriteLine("Press any key to go back...");
+                    // wait for input
                     Console.ReadKey();
+                    // go back to settings
                     Settings();
                     break;
 
                 case "Private rooms":
+                    // go to private rooms settings
                     PrivateRoomSettings();
                     break;
 
                 case "Manage data":
+                    // go to data settings
                     SaveSettings();
                     break;
 
                 case string S when S == ("Log QuerryNetworking debug [currently: " + Config.GetBool("NetworkDebug") + "]"):
+                    // toggle QuerryNetworking debug logs
                     Config.SetBool("NetworkDebug", !Config.GetBool("NetworkDebug"));
+                    // go back to settings
                     Settings();
                     break;
                 
                 case string S when S == ("Auto-Detect game version [currently: " + Config.GetBool("AutoDetect") + "]"):
+                    // toggle auto-detect game version
                     Config.SetBool("AutoDetect", !Config.GetBool("AutoDetect"));
+                    // go back to settings
                     Settings();
                     break;
 
                 case string S when S == ("Use OpenRec/RebornRec style ui nav [currently: " + Config.GetBool("ReControl") + "]"):
+                    // toggle FAST controls
                     Config.SetBool("ReControl", !Config.GetBool("ReControl"));
+                    // go back to settings
                     Settings();
                     break;
 
                 case string S when S == ("Server port override [currently: " + SettingStringValue("ServerPort") + "]"):
+                    // change the 'ServerPort' setting 🚨
                     ChangeStringSetting("ServerPort");
+                    // go back to settings
                     Settings();
                     break;
 
                 case string S when S == ("RebornRec compatibility mode [currently: " + Config.GetBool("ReCompat") + "]"):
+                    // toggle rebornrec compatibility mode
                     Config.SetBool("ReCompat", !Config.GetBool("ReCompat"));
                     if (Config.GetBool("ReCompat"))
                     {
+                        // set server port to RebornRec port
                         Config.SetString("ServerPort", "2059");
                     }
                     else
                     {
+                        // reset server port
                         Config.SetString("ServerPort", "");
                     }
+                    // go back to settings
                     Settings();
                     break;
                 
                 default:
+                    // settings
                     Settings();
                     break;
             }
@@ -210,28 +285,39 @@ namespace LocalQuest
 
         static void PrivateRoomSettings()
         {
+            // clear the console
             Console.Clear();
+            // write title
             UiTools.WriteTitle();
+            // write subtitle
             Console.WriteLine("Settings - Private Rooms");
 
+            // the options
             List<string> Options = new List<string>()
             {
                 "Go back",
                 "Private Code [currently: " + SettingStringValue("PrivateCode") + "]",
                 "Private DormRoom [currently: " + Config.GetBool("PrivateDorm") + "]"
             };
+            // get a selection
             string Selection = UiTools.WriteControls(Options);
+            // switch selection
             switch(Selection)
             {
                 case "Go back":
+                    // go back to settings
                     Settings();
                     break;
                 case string S when S == ("Private Code [currently: " + SettingStringValue("PrivateCode") + "]"):
+                    // change the private code setting
                     ChangeStringSetting("PrivateCode");
+                    // go back to private rooms settings
                     PrivateRoomSettings();
                     break;
                 case string S when S == ("Private DormRoom [currently: " + Config.GetBool("PrivateDorm") + "]"):
+                    // toggle the private dorm setting
                     Config.SetBool("PrivateDorm", !Config.GetBool("PrivateDorm"));
+                    // go back to private rooms settings
                     PrivateRoomSettings();
                     break;
             }
@@ -239,10 +325,14 @@ namespace LocalQuest
 
         static void ProfileSettings()
         {
+            // clear the console
             Console.Clear();
+            // write the title
             UiTools.WriteTitle();
+            // write subtitle
             Console.WriteLine("Settings - Profile");
 
+            // the possible choices
             string Selection = UiTools.WriteControls(new List<string>()
             {
                 "Go back",
@@ -254,36 +344,51 @@ namespace LocalQuest
                 "Change your group [currently: " + SettingStringValue("CurrentGroup") + "]"
             });
 
+            // switch selection
             switch (Selection)
             {
                 case "Go back":
+                    // go back to main menu
                     Main(new string[0]);
                     break;
                 case "Import from modern":
+                    // import profile from modern
                     Setup.ImportModernProfile();
+                    // go back to profile settings
                     ProfileSettings();
                     break;
                 case string S when S == ("Reset your profile picture [currently: " + SettingStringValue("PFP") + "]"):
+                    // set pfp to defaultpfp
                     Config.SetString("PFP", "DefaultPFP");
+                    // go back to profile settings
                     ProfileSettings();
                     break;
                 case string S when S == "Change Username [Currently: @" + Config.GetString("Username") + "]":
+                    // change username setting string
                     ChangeStringSetting("Username");
+                    // go back to profile settings
                     ProfileSettings();
                     break;
                 case string S when S == "Change DisplayName [Currently: " + Config.GetString("DisplayName") + "]":
+                    // change displayname setting string
                     ChangeStringSetting("DisplayName");
+                    // go back to profile settings
                     ProfileSettings();
                     break;
                 case string S when S == ("Change your group [currently: " + SettingStringValue("CurrentGroup") + "]"):
+                    // change the current group setting
                     ChangeStringSetting("CurrentGroup");
+                    // go back to profile settings
                     ProfileSettings();
                     break;
                 case string S when S == ("Change Level [Currently: " + Config.GetInt("Level") + "]"):
+                    // change level setting
                     ChangeIntSetting("Level");
+                    // go back to profile settings
                     ProfileSettings();
                     break;
                 default:
+                    // go back to profile settings
                     ProfileSettings();
                     break;
             }
@@ -291,9 +396,13 @@ namespace LocalQuest
 
         static void SaveSettings()
         {
+            // clear the console
             Console.Clear();
+            // write the title
             UiTools.WriteTitle();
+            // write subtitle
             Console.WriteLine("Settings - Data");
+            // list the options
             List<string> Options = new List<string>()
             {
                 "Go back",
@@ -301,58 +410,81 @@ namespace LocalQuest
                 "Update data",
                 "Import data from somewhere else"
             };
+            // get a selection from the user
             string Result = UiTools.WriteControls(Options);
+            // swithc result
             switch(Result)
             {
                 case "Go back":
+                    // go back to settings
                     Settings();
                     break;
                 case "Reset data":
+                    // clear the console
                     Console.Clear();
+                    // write the title
                     UiTools.WriteTitle();
+                    // subtitle
                     Console.WriteLine("LocalQuest - Reset data");
+                    // ask if sure
                     Console.WriteLine("Are you sure?");
+                    // get a response
                     string O = UiTools.WriteControls(new List<string>() { "yes", "no" });
+                    // if they say no
                     if (O == "no")
                     {
+                        // go back
                         Settings();
                         return;
                     }
 
+                    // clear the console again
                     Console.Clear();
+                    // write the title
                     UiTools.WriteTitle();
+                    // subtitle
                     Console.WriteLine("Deleting data folder...");
                     try
                     {
+                        // delete data folder and everything else :sob:
                         Directory.Delete(Directory.GetCurrentDirectory() + "/Data/", true);
                     }
                     catch
                     {
+                        // log error
                         Log.Error("Failed to delete data folder!");
                     }
+                    // show clearing config
                     Console.WriteLine("Clearing config data...");
                     try
                     {
+                        // clear config
                         Config.Clear();
                     }
                     catch
                     {
+                        // log error
                         Log.Error("Failed to clear config data!");
                     }
-
+                    // show banner complete! 📊
                     UiTools.ShowBanner("Done! Press [ENTER] to continue...");
+                    // go back to main menu (tutorial?!)
                     Main(new string[0]);
-
                     break;
                 case "Import data from somewhere else":
+                    // go to data import
                     ImportChoice();
                     break;
                 case "Update data":
+                    // download avatar items
                     List<AvatarItem> NewItems = AvatarManager.DownloadAvatarItems().Result;
+                    // save updated avatar items
                     FileManager.WriteJSON("Avatar/AvatarItems", NewItems);
+                    // go back to save settings
                     SaveSettings();
                     break;
                 default:
+                    // go back to save settings
                     SaveSettings();
                     break;
             }
@@ -360,12 +492,17 @@ namespace LocalQuest
 
         static void ImportChoice()
         {
+            // clear the console
             Console.Clear();
+            // write title
             UiTools.WriteTitle();
+            // subtitle
             Console.WriteLine("Where are you importing from?");
 
+            // show banner OVERWRITE
             UiTools.ShowBanner("This WILL overwrite your existing SaveData", ConsoleColor.Yellow);
 
+            // the options
             List<string> Options = new List<string>()
             {
                 "None! Go back",
@@ -373,6 +510,7 @@ namespace LocalQuest
                 "OpenRec"
             };
 
+            // get a selection
             string Select = UiTools.WriteControls(Options);
 
             switch(Select)
@@ -501,7 +639,7 @@ namespace LocalQuest
                         StartFailure("Failed to start the server. [|X3]");
                     }
                     break;
-                case "late 2018":
+                case "late 2018-mid 2019":
                     Console.Clear();
                     UiTools.WriteTitle();
                     Console.Title = "LocalQuest - late 2018";

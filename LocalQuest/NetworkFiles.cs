@@ -18,9 +18,9 @@ namespace LocalQuest
                 string S = await Client.GetStringAsync(BaseURL + Name + "?v=" + new Random().Next(0,5));
                 return JsonSerializer.Deserialize<T>(S);
             }
-            catch
+            catch(Exception ex)
             {
-                Log.Error("Failed to get network data file.");
+                Log.Error("Failed to get network data file: " + Name.Replace(".json", "", StringComparison.InvariantCultureIgnoreCase));
                 if(PauseOnError)
                     UiTools.WriteControls(new List<string>() { "okay..." });
                 return default(T);
