@@ -64,7 +64,7 @@ namespace LocalQuest
         // starts the selected build
         public static void StartSelected()
         {
-            // of there's no game version
+            // if there's no game version
             if(GameVersion == null)
             {
                 // just log nothing selected
@@ -80,43 +80,58 @@ namespace LocalQuest
                 PortOverride = "16512";
             }
 
-            // 2017 RebornRec
+            // 2017 RebornRec compatibility
             if (GameVersion.Contains("2017") && Config.GetBool("ReCompat"))
             {
-                Api GameServer = new Api("http://localhost:2056/");
+                Api RebornGameServer = new Api("http://localhost:2056/");
                 Console.Title = "LocalQuest - mid 2018";
-                GameServer.Listener.Prefixes.Add("http://localhost:2057/");
-                GameServer.StartServer(new string[] { "LocalQuest.Controllers.Mid2018" }, "LocalQuest - ReCompat 2017! server is online [|X3]", "Mid2018");
+                RebornGameServer.Listener.Prefixes.Add("http://localhost:2057/");
+                RebornGameServer.StartServer(["LocalQuest.Controllers.Mid2018"], "LocalQuest - ReCompat 2017! server is online [|X3]", "Mid2018");
                 return;
             }
 
             // get the version as integer 🙀
             int VerInt = int.Parse(GameVersion);
 
-            if(VerInt >= 20200403)
+            // create a server isntance
+            Api GameServer = new Api("http://localhost:" + PortOverride + "/");
+            
+            // COMMANDS (splooty wanted this feature)
+            Task.Run(() =>
             {
-                Api GameServer = new Api("http://localhost:" + PortOverride + "/");
-                Console.Title = "LocalQuest - late 2019+";
-                GameServer.StartServer(new string[] { "LocalQuest.Controllers.Late2018", "LocalQuest.Controllers.ServiceControllers" }, "LocalQuest - late 2019+! server is online [|X3]", "Late2019+");
-            }
-            if(VerInt >= 20181108)
+                while (true)
+                {
+                    ConsoleKeyInfo Key = Console.ReadKey(false);
+                    if (Key.Key != ConsoleKey.Escape) continue;
+                    GameServer.Stop();
+                    return;
+                }
+            });
+            
+            // switch version and start the (hopefully) correct build
+            switch (VerInt)
             {
-                Api GameServer = new Api("http://localhost:" + PortOverride + "/");
-                Console.Title = "LocalQuest - late 2018";
-                GameServer.StartServer(new string[] { "LocalQuest.Controllers.Late2018" }, "LocalQuest - late 2018! server is online [|X3]", "Late2018");
+                case >= 20200403:
+                    Console.Title = "LocalQuest - late 2019+";
+                    GameServer.StartServer(["LocalQuest.Controllers.Late2018", "LocalQuest.Controllers.ServiceControllers"],
+                        "LocalQuest - late 2019+! server is online [|X3] (pres [ESC] to stop)", "Late2019+");
+                    break;
+                case >= 20181108:
+                    Console.Title = "LocalQuest - late 2018";
+                    GameServer.StartServer(["LocalQuest.Controllers.Late2018"], "LocalQuest - late 2018! server is online [|X3] (pres [ESC] to stop)", "Late2018");
+                    break;
+                case >= 20180827:
+                    Console.Title = "LocalQuest - mid late 2018";
+                    GameServer.StartServer(["LocalQuest.Controllers.MidLate2018"],
+                        "LocalQuest - mid late 2018! server is online [|X3] (pres [ESC] to stop)", "MidLate2018");
+                    break;
+                default:
+                    Console.Title = "LocalQuest - mid 2018";
+                    GameServer.StartServer(["LocalQuest.Controllers.Mid2018"], "LocalQuest - mid 2018! server is online [|X3] (pres [ESC] to stop)", "Mid2018");
+                    break;
             }
-            else if(VerInt >= 20180827)
-            {
-                Api GameServer = new Api("http://localhost:" + PortOverride + "/");
-                Console.Title = "LocalQuest - mid late 2018";
-                GameServer.StartServer(new string[] { "LocalQuest.Controllers.MidLate2018" }, "LocalQuest - mid late 2018! server is online [|X3]", "MidLate2018");
-            }
-            else
-            {
-                Api GameServer = new Api("http://localhost:" + PortOverride + "/");
-                Console.Title = "LocalQuest - mid 2018";
-                GameServer.StartServer(new string[] { "LocalQuest.Controllers.Mid2018" }, "LocalQuest - mid 2018! server is online [|X3]", "Mid2018");
-            }
+
+            Program.Main([]);
         }
     }
 }

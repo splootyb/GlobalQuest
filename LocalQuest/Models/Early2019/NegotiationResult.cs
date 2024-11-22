@@ -11,7 +11,7 @@ namespace LocalQuest.Models.Early2019
         public string ConnectionId { get; set; } = Guid.NewGuid().ToString();
         public List<SupportedTransport> SupportedTransports { get; set; } = new List<SupportedTransport>();
         public Uri Url { get; set; } = new Uri("http://localhost:16512");
-        public string AccessToken { get; set; } = "Token like rec room?!";
+        public string AccessToken { get; set; } = "Token like rec room?! (we don't need this rn)";
     }
 
     public class SupportedTransport
