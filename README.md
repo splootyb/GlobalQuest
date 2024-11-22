@@ -1,3 +1,3 @@
-[Logo](https://github.com/GabeTheFirst/LocalQuest/blob/master/assets/LocalQuestBanner.png?raw=true)
+[Logo](https://raw.githubusercontent.com/Epic-Quest/LocalQuest-Data/refs/heads/main/Images/LocalQuestBanner.png)
 
 # LocalQuest
