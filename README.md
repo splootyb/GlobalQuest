@@ -7,3 +7,10 @@ I kind of rushed this server a little bit 😭 don't judge to much
 ## how to setup?
 You should just be able to build and run [|=3]
 
+## want to use a fork?
+
+- Fork [LocalQuest-Data](https://github.com/Epic-Quest/LocalQuest-Data)
+- To change the url you can either:
+  - Change the BaseURL in NetworkFiles.cs to the raw files for your repo
+  - Start the server with --URL https://raw.githubusercontent.com/{YOUR-REPO}
+- (When modifying LocalQuest-Data, skip over rooms 100-200 since they're reserved for RROs)
