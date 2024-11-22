@@ -1,3 +1,3 @@
-[Logo](brb)
+[Logo](https://github.com/GabeTheFirst/LocalQuest/blob/master/assets/LocalQuestBanner.png?raw=true)
 
-I will update later
+# LocalQuest
