@@ -9,52 +9,78 @@ namespace LocalQuest
 {
     public static class StartManager
     {
+        // the current game version
         public static string? GameVersion;
         public static void Request(string? URL, Api ServerLocation, int StatusCode)
         {
+            // of there's no url (should be impossible)
             if(string.IsNullOrEmpty(URL))
             {
+                // warn
                 Log.Warn("No URL");
                 return;
             }
+            // if url isn't versioncheck
             if(!URL.Contains("versioncheck"))
             {
+                // return
                 return;
             }
+            // get game version from query string 
             GameVersion = URL.Split("?")[1].Replace("v=", "").Replace("_EA", "");
+            // log game version
             Log.Info("Game version: " + GameVersion);
+            // set game version
             Config.SetString("LastGameVersion", GameVersion);
+            // remove request event
             ServerLocation.OnRequest -= Request;
+            // remove restart event
             ServerLocation.OnRequest -= CheckRestart;
+            // stop the server (should be BuildDetection)
             ServerLocation.Stop();
+            // once the BuildDetection server stops, the main server is started back in Program.cs
         }
 
+        // runs when BuildDetection NOT VersionCheck
         public static void CheckRestart(string? URL, Api ServerLocation, int StatusCode)
         {
+            // if BuildDetection DOES have this request
             if(StatusCode != 404)
             {
+                // don't start previous version
                 return;
             }
+            // set game version to the previous one
             GameVersion = Config.GetString("LastGameVersion");
+            //remove the request event
             ServerLocation.OnRequest -= Request;
+            // remove the check restart event
             ServerLocation.OnRequest -= CheckRestart;
+            // stop the current server, should be BuildDetection
             ServerLocation.Stop();
+            // once the BuildDetection server stops, the main server is started back in Program.cs
         }
 
+        // starts the selected build
         public static void StartSelected()
         {
+            // of there's no game version
             if(GameVersion == null)
             {
+                // just log nothing selected
                 Log.Warn("no game version selected!");
                 return;
             }
 
+            // get port override
             string? PortOverride = Config.GetString("ServerPort");
             if (string.IsNullOrEmpty(PortOverride))
             {
+                // set to default if there's no port override
                 PortOverride = "16512";
             }
 
+            // 2017 RebornRec
             if (GameVersion.Contains("2017") && Config.GetBool("ReCompat"))
             {
                 Api GameServer = new Api("http://localhost:2056/");
@@ -64,6 +90,7 @@ namespace LocalQuest
                 return;
             }
 
+            // get the version as integer 🙀
             int VerInt = int.Parse(GameVersion);
 
             if(VerInt >= 20200403)
