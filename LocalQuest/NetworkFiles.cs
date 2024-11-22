@@ -9,7 +9,7 @@ namespace LocalQuest
 {
     internal static class NetworkFiles
     {
-        static string BaseURL = "https://raw.githubusercontent.com/Epic-Quest/LocalQuest-Data/refs/heads/main/";
+        public static string BaseURL = "https://raw.githubusercontent.com/Epic-Quest/LocalQuest-Data/refs/heads/main/";
         static HttpClient Client = new HttpClient();
         public static async Task<T?> GetData<T>(string Name, bool PauseOnError = false)
         {

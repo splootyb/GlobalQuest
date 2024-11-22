@@ -21,6 +21,22 @@ namespace LocalQuest
             Console.Title = "LocalQuest";
             // hide the cursor for fancy ui 🙀
             Console.CursorVisible = false;
+
+            for(int i = 0; i < args.Length; i++)
+            {
+                if (args[i] == "--URL")
+                {
+                    if(i == args.Length)
+                    {
+                        NetworkFiles.BaseURL = args[i + 1];
+                    }
+                    else
+                    {
+                        Log.Warn("Url change requested but not provided");
+                    }
+                }
+            }
+
             // setup config file
             Config.Setup();
             // setup files
