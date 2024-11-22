@@ -99,11 +99,16 @@ namespace LocalQuest
             // COMMANDS (splooty wanted this feature)
             Task.Run(() =>
             {
+                // loop until escape key
                 while (true)
                 {
+                    // get key
                     ConsoleKeyInfo Key = Console.ReadKey(false);
+                    // do nothing if not escape
                     if (Key.Key != ConsoleKey.Escape) continue;
+                    // stop server
                     GameServer.Stop();
+                    // get out of here
                     return;
                 }
             });
