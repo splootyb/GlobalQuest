@@ -1,4 +1,4 @@
-![Image](https://raw.githubusercontent.com/Epic-Quest/LocalQuest-Data/refs/heads/main/Images/TestLocalBanner.png)
+![Image](https://raw.githubusercontent.com/Epic-Quest/LocalQuest-Data/refs/heads/main/Images/BannerImg.png)
 # LocalQuest - A Localhost Rec Room custom server 🙀
 ## What's localquest?
 LocalQuest is a custom server for rec room!! People can use this instead of RebornRec (it doesn't currently support every RebornRec build)!?
